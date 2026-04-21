@@ -42,6 +42,91 @@
   </div>
 </header>
 
+<!-- HERO · SIMULADOR -->
+<section class="mb-8 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-300">
+  <!-- Banner header -->
+  <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white px-6 py-4">
+    <h2 class="text-xl sm:text-2xl font-bold">¿Cuál te conviene?</h2>
+    <p class="text-sm opacity-90 mt-0.5">Poné tu monto y cuántas operaciones hacés al año. Te mostramos qué broker/plan te cobra menos.</p>
+  </div>
+
+  <div class="bg-white p-6 sm:p-8">
+    <!-- BIG USD INPUT -->
+    <div class="flex flex-col items-center mb-6">
+      <label for="savUsd" class="block text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">💵 Monto que querés invertir</label>
+      <div class="relative">
+        <span class="absolute left-5 top-1/2 -translate-y-1/2 text-4xl font-bold text-slate-400">$</span>
+        <input id="savUsd" type="number" step="100" value="1500"
+               class="text-5xl sm:text-6xl font-bold text-slate-900 pl-14 pr-24 py-3 w-80 sm:w-96 border-4 border-indigo-300 focus:border-indigo-600 rounded-2xl text-center bg-indigo-50 focus:bg-white outline-none transition num">
+        <span class="absolute right-5 top-1/2 -translate-y-1/2 text-lg font-semibold text-slate-500">USD</span>
+      </div>
+      <p class="text-xs text-slate-500 mt-2">Cambiá el número y mirá cómo cambia el ahorro ↓</p>
+    </div>
+
+    <!-- Secondary inputs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto text-sm">
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Operaciones / año</label>
+        <input id="savTrades" type="number" step="1" value="12" class="w-full px-3 py-2 border border-slate-300 rounded-lg num text-right text-base focus:border-indigo-500 outline-none">
+        <p class="text-[10px] text-slate-400 mt-0.5">compra + venta = 1 operación</p>
+      </div>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Horizonte (meses)</label>
+        <input id="savMeses" type="number" step="1" value="12" class="w-full px-3 py-2 border border-slate-300 rounded-lg num text-right text-base focus:border-indigo-500 outline-none">
+        <p class="text-[10px] text-slate-400 mt-0.5">por cuánto tiempo</p>
+      </div>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Origen fondos</label>
+        <select id="savOrigen" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
+          <option value="ars_local">ARS cuenta AR</option>
+          <option value="usd_local">USD cuenta AR</option>
+          <option value="usd_exterior">USD exterior</option>
+        </select>
+        <p class="text-[10px] text-slate-400 mt-0.5">define si pagás fondeo</p>
+      </div>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Hoy operás con</label>
+        <select id="savPlan" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
+          <option value="balanz">Balanz</option>
+          <option value="allaria">Allaria Autogestión</option>
+        </select>
+        <p class="text-[10px] text-slate-400 mt-0.5">tu broker actual</p>
+      </div>
+    </div>
+
+    <!-- BIG SAVINGS HEADLINE -->
+    <div id="savHeadline" class="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-indigo-50 border-2 border-emerald-300 p-6 sm:p-8 mb-5 text-center shadow-sm">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- Desglose collapsable -->
+    <details class="group">
+      <summary class="cursor-pointer text-sm font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-2">
+        <span class="group-open:rotate-90 transition-transform">▶</span>
+        Ver desglose completo por estrategia
+      </summary>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-xs text-slate-500 uppercase border-b-2 border-slate-200">
+            <tr>
+              <th class="text-left py-2 pr-3">Estrategia</th>
+              <th class="text-right py-2 px-3">Costo operativo</th>
+              <th class="text-right py-2 px-3">Susc. + fondeo</th>
+              <th class="text-right py-2 px-3">Custodia</th>
+              <th class="text-right py-2 px-3">Costo total</th>
+              <th class="text-right py-2 pl-3">Ahorro vs. base</th>
+            </tr>
+          </thead>
+          <tbody id="savTableBody"></tbody>
+        </table>
+        <p class="mt-3 text-[11px] text-slate-500 leading-relaxed">
+          <b>Cómo leerlo:</b> "Costo operativo" = comisiones de compra + venta. "Susc. + fondeo" = abono mensual del plan Wallbit + fee 4.5% del fondeo (one-time). "Custodia" = el abono mensual de Allaria. El ahorro se calcula contra el broker que seleccionaste arriba.
+        </p>
+      </div>
+    </details>
+  </div>
+</section>
+
 <!-- DATA CENTER -->
 <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-5">
   <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">1 · Datos de mercado</h2>
@@ -249,6 +334,322 @@
       <div id="postuladoVeredicto" class="text-[13px] text-slate-700 leading-relaxed"></div>
     </div>
   </div>
+</section>
+
+<!-- DASHBOARD: breakpoints por N trades -->
+<section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-5">
+  <div class="flex items-start justify-between flex-wrap gap-3 mb-4">
+    <div>
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">7 · Dashboard · ¿Dónde conviene a medida que operás más?</h2>
+      <p class="text-xs text-slate-500 mt-1">Notional fijo, horizonte 12 meses, origen ARS. El <span class="font-semibold text-emerald-700">mejor</span> por columna está resaltado.</p>
+    </div>
+    <div class="flex items-center gap-3 text-sm flex-wrap">
+      <label class="text-xs text-slate-500">Notional USD</label>
+      <input id="dashNotional" type="number" step="50" value="1500" class="w-28 px-2 py-1.5 border border-slate-300 rounded num text-right">
+      <label class="text-xs text-slate-500">Meses</label>
+      <input id="dashMeses" type="number" step="1" value="12" class="w-16 px-2 py-1.5 border border-slate-300 rounded num text-right">
+      <label class="text-xs text-slate-500">Origen</label>
+      <select id="dashOrigen" class="px-2 py-1.5 border border-slate-300 rounded text-xs">
+        <option value="ars_local">ARS cuenta AR</option>
+        <option value="usd_local">USD cuenta AR</option>
+        <option value="usd_exterior">USD exterior</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm num">
+      <thead class="text-xs text-slate-500 uppercase border-b-2 border-slate-200">
+        <tr>
+          <th class="text-left py-2 pr-3">Estrategia</th>
+          <th class="text-right py-2 px-2">1 RT</th>
+          <th class="text-right py-2 px-2">5 RT</th>
+          <th class="text-right py-2 px-2">10 RT</th>
+          <th class="text-right py-2 px-2">25 RT</th>
+          <th class="text-right py-2 px-2">50 RT</th>
+          <th class="text-right py-2 px-2">100 RT</th>
+          <th class="text-right py-2 pl-2">250 RT</th>
+        </tr>
+      </thead>
+      <tbody id="dashTableBody"></tbody>
+      <tfoot class="border-t-2 border-slate-200">
+        <tr class="text-xs">
+          <td class="text-left py-2 pr-3 text-slate-500 uppercase font-semibold">Ganador</td>
+          <td id="dashWin_1"  class="text-right py-2 px-2"></td>
+          <td id="dashWin_5"  class="text-right py-2 px-2"></td>
+          <td id="dashWin_10" class="text-right py-2 px-2"></td>
+          <td id="dashWin_25" class="text-right py-2 px-2"></td>
+          <td id="dashWin_50" class="text-right py-2 px-2"></td>
+          <td id="dashWin_100" class="text-right py-2 px-2"></td>
+          <td id="dashWin_250" class="text-right py-2 pl-2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Winner zones + insight -->
+  <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-slate-50 rounded-lg p-4">
+      <p class="text-xs font-semibold text-slate-600 uppercase mb-2">Zonas de dominio</p>
+      <div id="dashZones" class="text-[13px] space-y-1"></div>
+    </div>
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+      <p class="text-xs font-semibold text-indigo-700 uppercase mb-2">Insight</p>
+      <div id="dashInsight" class="text-[13px] text-slate-700 leading-relaxed"></div>
+    </div>
+  </div>
+
+  <!-- Chart dedicado -->
+  <div class="mt-5">
+    <div style="height:300px;"><canvas id="dashChart"></canvas></div>
+  </div>
+</section>
+
+<!-- SECTION 8: TABLA DE COSTOS OCULTOS -->
+<section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+  <div class="mb-4">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">8 · Costos ocultos · Desglose línea por línea</h2>
+    <p class="text-xs text-slate-500 mt-1">Todos los cargos, abonos, spreads y fees — los obvios y los que no aparecen hasta que llega la liquidación. Fuente: PDF oficial Allaria (Abr-2026), tarifario oficial Balanz (2025) y condiciones Wallbit.</p>
+  </div>
+
+  <style>
+    .hc-table { border-collapse:separate; border-spacing:0; width:100%; font-size:12px; }
+    .hc-table th, .hc-table td { border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; padding:6px 10px; vertical-align:middle; }
+    .hc-table th:first-child, .hc-table td:first-child { border-left:1px solid #e2e8f0; }
+    .hc-table thead th { background:#f1f5f9; border-top:1px solid #e2e8f0; font-weight:600; color:#334155; text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:0.03em; }
+    .hc-table tbody tr:nth-child(even) td { background:#f8fafc; }
+    .hc-table tbody tr:hover td { background:#fef3c7; }
+    .hc-table .row-cat { background:#0f172a !important; color:#fff; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:6px 10px; }
+    .hc-table .hc-label { font-weight:500; color:#334155; text-align:left; min-width:180px; }
+    .hc-table .hc-val { text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .hc-table .hc-hide { color:#94a3b8; font-style:italic; }
+    .hc-table .hc-bad  { color:#dc2626; font-weight:600; }
+    .hc-table .hc-good { color:#16a34a; font-weight:600; }
+    .hc-table .hc-neut { color:#0f172a; }
+    .hc-brand { padding:4px 8px; border-radius:6px; font-weight:700; font-size:11px; color:#fff; display:inline-block; }
+    .hc-brand.balanz  { background:#7c3aed; }
+    .hc-brand.allaria { background:#0ea5e9; }
+    .hc-brand.classic { background:#3b82f6; }
+    .hc-brand.pro     { background:#1d4ed8; }
+    .hc-brand.max     { background:#1e3a8a; }
+  </style>
+
+  <div class="overflow-x-auto border border-slate-200 rounded-lg">
+    <table class="hc-table">
+      <thead>
+        <tr>
+          <th class="hc-label" style="text-align:left;">Concepto</th>
+          <th><span class="hc-brand balanz">Balanz</span></th>
+          <th><span class="hc-brand allaria">Allaria Auto.</span></th>
+          <th><span class="hc-brand classic">WB Classic</span></th>
+          <th><span class="hc-brand pro">WB Pro</span></th>
+          <th><span class="hc-brand max">WB Max</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="row-cat" colspan="6">Apertura, mantenimiento y accesos</td></tr>
+        <tr>
+          <td class="hc-label">Apertura de cuenta</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Mantenimiento de cuenta</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+          <td class="hc-val hc-good">Sin cargo</td>
+        </tr>
+
+        <tr><td class="row-cat" colspan="6">Comisión operativa</td></tr>
+        <tr>
+          <td class="hc-label">Comisión por compra/venta</td>
+          <td class="hc-val hc-neut">Hasta 0,50%</td>
+          <td class="hc-val hc-neut">0,50%</td>
+          <td class="hc-val hc-neut">0,40%</td>
+          <td class="hc-val hc-neut">0,35%</td>
+          <td class="hc-val hc-neut">0,30%</td>
+        </tr>
+        <tr>
+          <td class="hc-label">IVA sobre comisión</td>
+          <td class="hc-val hc-bad">+21%<sup>†</sup></td>
+          <td class="hc-val hc-bad">+21%</td>
+          <td class="hc-val hc-good">—</td>
+          <td class="hc-val hc-good">—</td>
+          <td class="hc-val hc-good">—</td>
+        </tr>
+        <tr>
+          <td class="hc-label"><b>Comisión efectiva</b> (c/IVA)</td>
+          <td class="hc-val hc-neut"><b>0,605%</b></td>
+          <td class="hc-val hc-neut"><b>0,605%</b></td>
+          <td class="hc-val hc-neut"><b>0,40%</b></td>
+          <td class="hc-val hc-neut"><b>0,35%</b></td>
+          <td class="hc-val hc-neut"><b>0,30%</b></td>
+        </tr>
+        <tr>
+          <td class="hc-label">Bonif. intradía (comisión)</td>
+          <td class="hc-val hc-good">50% off</td>
+          <td class="hc-val hc-hide">sin bonif</td>
+          <td class="hc-val hc-hide">N/A</td>
+          <td class="hc-val hc-hide">N/A</td>
+          <td class="hc-val hc-hide">N/A</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Tope por operación</td>
+          <td class="hc-val hc-bad">sin tope</td>
+          <td class="hc-val hc-bad">sin tope</td>
+          <td class="hc-val hc-bad">sin tope</td>
+          <td class="hc-val hc-bad">sin tope</td>
+          <td class="hc-val hc-good">USD 10</td>
+        </tr>
+
+        <tr><td class="row-cat" colspan="6">Cargos de mercado y regulatorios</td></tr>
+        <tr>
+          <td class="hc-label">Derechos BYMA <span class="text-[9px] text-slate-400">(hasta)</span></td>
+          <td class="hc-val hc-neut">0,01%</td>
+          <td class="hc-val hc-neut">0,01%*</td>
+          <td class="hc-val hc-hide">incluido</td>
+          <td class="hc-val hc-hide">incluido</td>
+          <td class="hc-val hc-hide">incluido</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Gastos conversión CEDEAR</td>
+          <td class="hc-val hc-bad">USD 0,03/CEDEAR<br><span class="text-[10px]">+ IVA</span></td>
+          <td class="hc-val hc-bad">USD 0,10/ADR<br><span class="text-[10px]">+ $20 fijo (canje)</span></td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Gastos conversión ADR</td>
+          <td class="hc-val hc-bad">USD 0,05/ADR<br><span class="text-[10px]">+ costos agente + IVA</span></td>
+          <td class="hc-val hc-neut">—</td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Renta/dividendos CEDEAR</td>
+          <td class="hc-val hc-bad">Hasta 0,35% + IVA</td>
+          <td class="hc-val hc-neut">—</td>
+          <td class="hc-val hc-good">dividendos netos al saldo</td>
+          <td class="hc-val hc-good">dividendos netos al saldo</td>
+          <td class="hc-val hc-good">dividendos netos al saldo</td>
+        </tr>
+
+        <tr><td class="row-cat" colspan="6">Abonos y custodia</td></tr>
+        <tr>
+          <td class="hc-label">Custodia mensual</td>
+          <td class="hc-val hc-good">$0</td>
+          <td class="hc-val hc-bad">$35 ARS<br><span class="text-[10px]">+ IVA</span></td>
+          <td class="hc-val hc-good">$0</td>
+          <td class="hc-val hc-good">$0</td>
+          <td class="hc-val hc-good">$0</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Abono mensual (plan)</td>
+          <td class="hc-val hc-good">$0</td>
+          <td class="hc-val hc-good">$0</td>
+          <td class="hc-val hc-good">$0</td>
+          <td class="hc-val hc-bad">USD 9,99</td>
+          <td class="hc-val hc-bad">USD 19,99</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Transferencia interna títulos</td>
+          <td class="hc-val hc-neut">—</td>
+          <td class="hc-val hc-bad">$15 + IVA</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Transferencia internacional títulos (ley exterior)</td>
+          <td class="hc-val hc-bad">Hasta EUR 3/especie<br><span class="text-[10px]">+ IVA</span></td>
+          <td class="hc-val hc-bad">EUR 23/especie</td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+        </tr>
+
+        <tr><td class="row-cat" colspan="6">Ingreso / salida de fondos</td></tr>
+        <tr>
+          <td class="hc-label">Fondeo desde cuenta AR <span class="text-[9px] text-slate-400">(one-time)</span></td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-bad">4,5%</td>
+          <td class="hc-val hc-bad">4,5%</td>
+          <td class="hc-val hc-bad">4,5%</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Fondeo desde cuenta exterior</td>
+          <td class="hc-val hc-neut">CCL implícito</td>
+          <td class="hc-val hc-neut">CCL implícito</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Transferencia monetaria saliente en USD cable</td>
+          <td class="hc-val hc-bad">USD 10 + IVA</td>
+          <td class="hc-val hc-bad">Según plaza</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+          <td class="hc-val hc-good">gratis</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Spread cambiario al comprar</td>
+          <td class="hc-val hc-bad">CCL implícito<br><span class="text-[10px]">(prima CEDEAR)</span></td>
+          <td class="hc-val hc-bad">CCL implícito<br><span class="text-[10px]">(prima CEDEAR)</span></td>
+          <td class="hc-val hc-good">precio USD real</td>
+          <td class="hc-val hc-good">precio USD real</td>
+          <td class="hc-val hc-good">precio USD real</td>
+        </tr>
+
+        <tr><td class="row-cat" colspan="6">Rendimiento sobre saldo</td></tr>
+        <tr>
+          <td class="hc-label">APR sobre USD ocioso</td>
+          <td class="hc-val hc-hide">—</td>
+          <td class="hc-val hc-hide">—</td>
+          <td class="hc-val hc-good">3,00%</td>
+          <td class="hc-val hc-good">3,35%</td>
+          <td class="hc-val hc-good">3,75%</td>
+        </tr>
+
+        <tr><td class="row-cat" colspan="6">Alternativa: comprar acción en exterior directa</td></tr>
+        <tr>
+          <td class="hc-label">Por ALyC (asistida, no autogestión)</td>
+          <td class="hc-val hc-bad">1,50% + IVA<br><span class="text-[10px]">mín USD 10 + IVA</span></td>
+          <td class="hc-val hc-bad">1,50% + IVA<br><span class="text-[10px]">mín USD 10 + IVA</span></td>
+          <td class="hc-val hc-good">incluido en comisión</td>
+          <td class="hc-val hc-good">incluido en comisión</td>
+          <td class="hc-val hc-good">incluido en comisión</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-900 leading-relaxed">
+      <b class="uppercase tracking-wider text-[10px]">* Nota sobre derechos BYMA</b><br>
+      Según el PDF oficial de Allaria, las operaciones ejecutadas en Rueda Continua No Garantizada no tienen derechos de Bolsa y Mercado (los aranceles están incluidos en el precio final). Si operás en PPT (prioridad precio-tiempo) el 0,01% se suma; en rueda no garantizada ya viene dentro del precio.
+    </div>
+    <div class="bg-sky-50 border border-sky-200 rounded-lg p-3 text-sky-900 leading-relaxed">
+      <b class="uppercase tracking-wider text-[10px]">† Nota sobre IVA en Balanz</b><br>
+      El tarifario público de Balanz (2025) expresa las comisiones operativas como "hasta 0,50%" sin detallar "+ IVA" explícitamente — sí lo aclara en transferencias, dividendos y conversión. En la práctica la comisión en Argentina suele liquidarse con IVA 21%; confirmá el neto real en la primera liquidación.
+    </div>
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-indigo-900 leading-relaxed">
+      <b class="uppercase tracking-wider text-[10px]">Hidden cost más grande: el spread CEDEAR</b><br>
+      Al comprar un CEDEAR pagás el precio en ARS que el mercado local arbitra contra el CCL. Si el CEDEAR cotiza con prima vs. el implícito (frecuente en papeles poco líquidos) ya perdiste antes de sumar comisiones. Wallbit compra la acción en NYSE/NASDAQ al precio real.
+    </div>
+  </div>
+
+  <p class="mt-3 text-[10px] text-slate-400 text-center">
+    Fuentes: PDF oficial ArancelesComisiones Allaria (Abr-2026), tarifario oficial Balanz (2025) y condiciones públicas Wallbit. Los valores son "hasta" — pueden bonificarse por volumen según oficial de cuenta.
+  </p>
 </section>
 
 <!-- FOOTER -->
@@ -606,12 +1007,12 @@ function renderChart() {
     data: {
       labels: xs,
       datasets: [
-        { label: 'Balanz swing', data: balanzSwing, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.1)', tension:.1, pointRadius:0 },
-        { label: 'Balanz intradía', data: balanzIntra, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.1)', tension:.1, pointRadius:0 },
-        { label: 'Allaria autogestión', data: allaria, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,.1)', tension:.1, pointRadius:0 },
-        { label: 'Wallbit Classic', data: wbClassic, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.1)', tension:.1, pointRadius:0 },
-        { label: 'Wallbit Pro', data: wbPro, borderColor:'#ec4899', backgroundColor:'rgba(236,72,153,.1)', tension:.1, pointRadius:0 },
-        { label: 'Wallbit Max', data: wbMax, borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,.1)', tension:.1, pointRadius:0 },
+        { label: 'Balanz swing', data: balanzSwing, borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
+        { label: 'Balanz intradía', data: balanzIntra, borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
+        { label: 'Allaria autogestión', data: allaria, borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
+        { label: 'Wallbit Classic', data: wbClassic, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
+        { label: 'Wallbit Pro', data: wbPro, borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
+        { label: 'Wallbit Max', data: wbMax, borderColor:'#1e3a8a', backgroundColor:'rgba(30,58,138,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
       ]
     },
     options: {
@@ -735,6 +1136,134 @@ function renderPostulado() {
   $('postuladoVeredicto').innerHTML = veredicto;
 }
 
+// ============================================================
+// DASHBOARD (breakpoints por N round-trips)
+// ============================================================
+let dashChart = null;
+function renderDashboard() {
+  const notional = parseFloat($('dashNotional').value) || 1500;
+  const meses    = parseFloat($('dashMeses').value) || 12;
+  const origen   = $('dashOrigen').value || 'ars_local';
+  const idle     = 0;
+  const Ns = [1, 5, 10, 25, 50, 100, 250];
+  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses, origenFondos: origen, idleUSD: idle });
+
+  const strategies = [
+    { id:'balanzSwing', label:'Balanz',               color:'#7c3aed', fn:(s)=>computeBalanz(state.market, s, 'swing'),    eligible:true },
+    { id:'allaria',     label:'Allaria · Autogestión', color:'#0ea5e9', fn:(s)=>computeAllaria(state.market, s),            eligible:true },
+    { id:'wbClassic',   label:'Wallbit · Classic',    color:'#3b82f6', fn:(s)=>computeWallbit(state.market, s, 'classic'), eligible:true },
+    { id:'wbPro',       label:'Wallbit · Pro',        color:'#1d4ed8', fn:(s)=>computeWallbit(state.market, s, 'pro'),     eligible:true },
+    { id:'wbMax',       label:'Wallbit · Max',        color:'#1e3a8a', fn:(s)=>computeWallbit(state.market, s, 'max'),     eligible:true },
+  ];
+
+  // Costos: strategies × Ns
+  const grid = strategies.map(st => ({
+    ...st,
+    costs: Ns.map(n => st.fn(mkScen(n)).totalCost)
+  }));
+  // Winner index por columna — sólo entre elegibles
+  const winners = Ns.map((_, ci) => {
+    let minIdx = -1;
+    for (let i=0; i<grid.length; i++) {
+      if (!grid[i].eligible) continue;
+      if (minIdx === -1 || grid[i].costs[ci] < grid[minIdx].costs[ci]) minIdx = i;
+    }
+    return minIdx;
+  });
+
+  // Render tbody
+  let body = '';
+  grid.forEach((row, ri) => {
+    const disabled = !row.eligible;
+    body += `<tr class="border-b border-slate-100 ${disabled?'opacity-40':''}">
+      <td class="text-left py-2 pr-3 font-medium" style="color:${row.color}">${row.label}${disabled?' <span class="text-[10px] text-slate-400">(desactivado)</span>':''}</td>`;
+    row.costs.forEach((c, ci) => {
+      const isWin = winners[ci] === ri;
+      const cls = isWin ? 'bg-emerald-100 text-emerald-900 font-bold rounded' : 'text-slate-700';
+      body += `<td class="text-right py-2 ${ci===row.costs.length-1?'pl-2':'px-2'}"><span class="${cls} inline-block px-2 py-0.5">$${c.toFixed(2)}</span></td>`;
+    });
+    body += '</tr>';
+  });
+  $('dashTableBody').innerHTML = body;
+
+  // Winner footer row
+  Ns.forEach((n, ci) => {
+    const w = grid[winners[ci]];
+    const el = $('dashWin_'+n);
+    el.innerHTML = `<span class="badge bg-emerald-100 text-emerald-700 text-[10px]">${w.label.split(' · ')[0]}<br>${w.label.split(' · ')[1]||''}</span>`;
+  });
+
+  // Zones: find break-even ranges — sólo sobre elegibles
+  const eligStrats = strategies.filter(s => s.eligible);
+  const zones = [];
+  let currentWinner = -1, zoneStart = 1;
+  for (let n=1; n<=500; n++) {
+    const costs = eligStrats.map(st => st.fn(mkScen(n)).totalCost);
+    const minIdx = costs.indexOf(Math.min(...costs));
+    if (minIdx !== currentWinner) {
+      if (currentWinner !== -1) {
+        zones.push({ winner: eligStrats[currentWinner], from: zoneStart, to: n-1 });
+      }
+      currentWinner = minIdx;
+      zoneStart = n;
+    }
+  }
+  zones.push({ winner: eligStrats[currentWinner], from: zoneStart, to: 500 });
+
+  let zonesHtml = '';
+  zones.forEach(z => {
+    const range = z.to >= 500 ? `${z.from}+ RT` : `${z.from}–${z.to} RT`;
+    zonesHtml += `<div class="flex items-center gap-2">
+      <span class="inline-block w-3 h-3 rounded" style="background:${z.winner.color}"></span>
+      <span class="font-mono text-slate-600">${range}</span>
+      <span class="text-slate-800">→ <b>${z.winner.label}</b></span>
+    </div>`;
+  });
+  $('dashZones').innerHTML = zonesHtml;
+
+  // Insight
+  const bestAtN = (n) => {
+    const costs = eligStrats.map(st => st.fn(mkScen(n)).totalCost);
+    const minIdx = costs.indexOf(Math.min(...costs));
+    return { name: eligStrats[minIdx].label, cost: costs[minIdx] };
+  };
+  const at10 = bestAtN(10), at100 = bestAtN(100);
+  const insightHtml = `
+    <p class="mb-2">Con <b class="text-indigo-900">$${notional.toFixed(0)}</b>, origen <b>${origen==='ars_local'?'ARS cuenta AR':origen==='usd_local'?'USD cuenta AR':'USD exterior'}</b>:</p>
+    <ul class="space-y-1 list-disc list-inside">
+      <li><b>Hasta ~10 RT/año:</b> gana <b>${at10.name}</b> ($${at10.cost.toFixed(2)})</li>
+      <li><b>A 100 RT/año:</b> gana <b>${at100.name}</b> ($${at100.cost.toFixed(2)})</li>
+      <li>Primer cambio de ganador: <b>${zones.length > 1 ? `RT ${zones[1].from}` : 'nunca cambia'}</b></li>
+    </ul>
+    <p class="text-[11px] text-slate-500 mt-2">Escenario para usuario común: buy &amp; hold o trading de baja frecuencia (no intradía).</p>`;
+  $('dashInsight').innerHTML = insightHtml;
+
+  // Chart dedicado (0..250 RT smooth curve)
+  const xs = [];
+  for (let i=0; i<=100; i++) xs.push(Math.round(i*2.5));  // 0, 2, 5, ..., 250
+  const datasets = strategies.map(st => ({
+    label: st.label,
+    data: xs.map(n => st.fn(mkScen(n)).totalCost),
+    borderColor: st.color,
+    backgroundColor: st.color + '22',
+    tension: .1, pointRadius: 0, borderWidth: 2
+  }));
+  if (dashChart) dashChart.destroy();
+  dashChart = new Chart($('dashChart').getContext('2d'), {
+    type: 'line',
+    data: { labels: xs, datasets },
+    options: {
+      maintainAspectRatio:false, responsive:true,
+      plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:10 } }, tooltip: { mode:'index', intersect:false } },
+      interaction: { mode:'index', intersect:false },
+      scales: {
+        x: { title:{display:true,text:'Round-trips / año',font:{size:11}} },
+        y: { title:{display:true,text:'Costo total (USD)',font:{size:11}}, beginAtZero:true }
+      }
+    }
+  });
+}
+
 function renderAll() {
   renderImplied();
   renderResults('A');
@@ -743,6 +1272,115 @@ function renderAll() {
   computeBreakeven();
   renderReco();
   renderPostulado();
+  renderDashboard();
+  renderSavings();
+}
+
+// ============================================================
+// SIMULADOR DE AHORRO (monto × trades → ahorro, agnóstico del ticker)
+// ============================================================
+function renderSavings() {
+  const usd    = parseFloat($('savUsd').value)    || 0;
+  const trades = parseFloat($('savTrades').value) || 0;
+  const meses  = parseFloat($('savMeses').value)  || 12;
+  const origen = $('savOrigen').value || 'ars_local';
+  const basePlan = $('savPlan').value || 'balanz';
+
+  const scen = { notionalUSD: usd, numRT: trades, meses, origenFondos: origen, idleUSD: 0 };
+
+  // Breakdown helper
+  const breakdowns = {
+    balanz:  { label:'Balanz',                color:'#7c3aed', r: computeBalanz(state.market, scen, 'swing'),   extra: { susc:0, custodia:0, fondeo:0, apr:0 } },
+    allaria: { label:'Allaria · Autogestión', color:'#0ea5e9', r: computeAllaria(state.market, scen),           extra: null /* filled below */ },
+    wbClassic: { label:'Wallbit · Classic',   color:'#3b82f6', r: computeWallbit(state.market, scen, 'classic'), extra: null },
+    wbPro:     { label:'Wallbit · Pro',       color:'#1d4ed8', r: computeWallbit(state.market, scen, 'pro'),     extra: null },
+    wbMax:     { label:'Wallbit · Max',       color:'#1e3a8a', r: computeWallbit(state.market, scen, 'max'),     extra: null },
+  };
+
+  // Compute extra breakdowns for transparency
+  const custodiaARS = state.market.allariaCustodiaARS * (1 + state.market.iva/100) * meses;
+  const custodiaUSD = custodiaARS / state.market.ccl;
+  breakdowns.allaria.extra = { susc:0, custodia:custodiaUSD, fondeo:0, apr:0 };
+
+  const fondeoApplies = origen === 'ars_local' || origen === 'usd_local';
+  const fondeoFee = fondeoApplies ? usd * state.market.fondeoWallbit / (100 - state.market.fondeoWallbit) : 0;
+  // No idle in this simulator (idle es 0) → APR benefit = 0
+  ['wbClassic','wbPro','wbMax'].forEach(k => {
+    const plan = k === 'wbClassic' ? 'classic' : k === 'wbPro' ? 'pro' : 'max';
+    const fee = plan==='classic' ? state.market.wallbitFeeClassic
+              : plan==='pro'     ? state.market.wallbitFeePro
+              : state.market.wallbitFeeMax;
+    breakdowns[k].extra = { susc: fee*meses, custodia:0, fondeo:fondeoFee, apr:0 };
+  });
+
+  // Base (estrategia actual del usuario)
+  const baseKey = basePlan === 'balanz' ? 'balanz' : 'allaria';
+  const baseCost = breakdowns[baseKey].r.totalCost;
+  const baseLabel = breakdowns[baseKey].label;
+
+  // Find best Wallbit plan
+  const wbPlans = ['wbClassic','wbPro','wbMax'];
+  let bestWb = null;
+  wbPlans.forEach(k => {
+    const c = breakdowns[k].r.totalCost;
+    if (!bestWb || c < bestWb.cost) bestWb = { key:k, cost:c, label:breakdowns[k].label };
+  });
+  const savings = baseCost - bestWb.cost;
+  const savingsPct = baseCost > 0 ? (savings/baseCost*100) : 0;
+  const savingsFlavor = savings > 0
+    ? `<span class="text-emerald-700">te ahorrás</span>`
+    : `<span class="text-rose-700">pagás de más</span>`;
+
+  // Headline card (HERO)
+  const originTxt = origen==='ars_local'?'ARS cuenta AR' : origen==='usd_local'?'USD cuenta AR' : 'USD exterior';
+  const winsColor = savings > 0 ? 'text-emerald-600' : 'text-rose-600';
+  const headlineMsg = savings > 0
+    ? `Te ahorrás con <span style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</span>`
+    : `Pagás de más con <span style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</span>`;
+  const headline = `
+    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Moviendo $${usd.toLocaleString('en-US')} × ${trades} operaciones/año · ${meses} meses · ${originTxt}</div>
+    <div class="text-5xl sm:text-6xl font-extrabold ${winsColor} mb-1">
+      ${savings > 0 ? '+' : '−'}$${Math.abs(savings).toFixed(2)}
+      <span class="text-2xl sm:text-3xl text-slate-500 font-bold align-middle ml-2">USD</span>
+    </div>
+    <div class="text-sm sm:text-base text-slate-600 mb-3">
+      ${Math.abs(savingsPct).toFixed(1)}% ${savings > 0 ? 'menos' : 'más'} de costo total
+    </div>
+    <div class="text-lg sm:text-xl font-semibold text-slate-800">
+      ${headlineMsg}
+    </div>
+    <div class="text-xs text-slate-500 mt-3 flex items-center justify-center gap-3 flex-wrap">
+      <span>Base <b style="color:${breakdowns[baseKey].color}">${baseLabel}</b>: $${baseCost.toFixed(2)}</span>
+      <span class="text-slate-300">→</span>
+      <span><b style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</b>: $${bestWb.cost.toFixed(2)}</span>
+    </div>`;
+  $('savHeadline').innerHTML = headline;
+
+  // Tabla
+  const order = [baseKey, ...wbPlans.filter(k => k !== baseKey), ...(baseKey==='balanz'?['allaria']:['balanz'])];
+  let body = '';
+  order.forEach(k => {
+    const b = breakdowns[k];
+    const ex = b.extra;
+    const trading = b.r.tradingCost || 0;
+    const suscFondeo = ex.susc + ex.fondeo;
+    const aprCust = ex.custodia; // APR is 0 in this simulator
+    const total = b.r.totalCost;
+    const delta = baseCost - total;
+    const deltaTxt = delta > 0.01 ? `<span class="text-emerald-700 font-bold">−$${delta.toFixed(2)}</span>`
+                    : delta < -0.01 ? `<span class="text-rose-700">+$${Math.abs(delta).toFixed(2)}</span>`
+                    : `<span class="text-slate-400">—</span>`;
+    const isBase = (k === baseKey);
+    body += `<tr class="border-b border-slate-100 ${isBase?'bg-slate-50':''}">
+      <td class="text-left py-2 pr-3 font-medium" style="color:${b.color}">${b.label}${isBase?' <span class="text-[10px] text-slate-500 ml-1 font-normal">(base)</span>':''}</td>
+      <td class="text-right py-2 px-3 num">$${trading.toFixed(2)}</td>
+      <td class="text-right py-2 px-3 num">${suscFondeo > 0.01 ? '$'+suscFondeo.toFixed(2) : '—'}</td>
+      <td class="text-right py-2 px-3 num">${aprCust > 0.01 ? '$'+aprCust.toFixed(2) : '—'}</td>
+      <td class="text-right py-2 px-3 num font-semibold">$${total.toFixed(2)}</td>
+      <td class="text-right py-2 pl-3 num">${deltaTxt}</td>
+    </tr>`;
+  });
+  $('savTableBody').innerHTML = body;
 }
 
 // ============================================================
@@ -932,6 +1570,18 @@ function init() {
     if (!e.target.closest('#cedearSearch') && !e.target.closest('#cedearDropdown')) {
       $('cedearDropdown').classList.add('hidden');
     }
+  });
+
+  // Dashboard inputs
+  ['dashNotional','dashMeses','dashOrigen'].forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', renderDashboard);
+  });
+
+  // Savings simulator inputs
+  ['savUsd','savTrades','savMeses','savOrigen','savPlan'].forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', renderSavings);
   });
 
   // Buttons
