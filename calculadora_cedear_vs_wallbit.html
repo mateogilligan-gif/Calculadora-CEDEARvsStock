@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEDEAR vs Wallbit · Calculadora con datos en vivo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .num { font-variant-numeric: tabular-nums; }
+  .dot-live { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot-ok { background:#10b981; box-shadow:0 0 0 3px rgba(16,185,129,.25); animation: pulse 2s infinite; }
+  .dot-warn { background:#f59e0b; }
+  .dot-err { background:#ef4444; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .cedear-dropdown { max-height: 320px; overflow-y: auto; }
+  .cedear-dropdown::-webkit-scrollbar { width:6px; }
+  .cedear-dropdown::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+  details > summary { list-style: none; cursor:pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  .chevron { transition: transform .15s; }
+  details[open] .chevron { transform: rotate(90deg); }
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+<!-- HEADER -->
+<header class="mb-6">
+  <div class="flex items-start justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">CEDEAR vs Wallbit · Calculadora</h1>
+      <p class="text-sm text-slate-500 mt-1">Comparador de costos para inversor minorista autogestionador · Datos en vivo</p>
+    </div>
+    <div class="flex items-center gap-2 text-xs">
+      <span id="statusDot" class="dot-live dot-warn"></span>
+      <span id="statusText" class="text-slate-600">Cargando...</span>
+      <button id="btnRefresh" class="ml-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium">↻ Refrescar</button>
+    </div>
+  </div>
+</header>
+
+<!-- DATA CENTER -->
+<section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-5">
+  <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">1 · Datos de mercado</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- CCL -->
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">CCL (ARS/USD)</label>
+      <div class="flex items-center gap-2">
+        <input id="ccl" type="number" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-md num font-semibold text-slate-900">
+        <span id="cclSrc" class="text-[10px] text-slate-400">--</span>
+      </div>
+      <p class="text-[10px] text-slate-400 mt-0.5">Auto: dolarapi.com</p>
+    </div>
+    <!-- CEDEAR selector -->
+    <div class="lg:col-span-2 relative">
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">CEDEAR</label>
+      <div class="relative">
+        <input id="cedearSearch" type="text" placeholder="Buscar ticker o nombre (ej. AAPL, Tesla)..."
+               class="w-full px-3 py-2 border border-slate-300 rounded-md" autocomplete="off">
+        <div id="cedearDropdown" class="cedear-dropdown hidden absolute z-30 mt-1 left-0 right-0 bg-white border border-slate-200 rounded-md shadow-lg"></div>
+      </div>
+      <p id="cedearHint" class="text-[10px] text-slate-400 mt-0.5">414 CEDEARs · BYMA 16-Abr-2026</p>
+    </div>
+    <!-- Ratio -->
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Ratio (CEDEAR:Acción)</label>
+      <input id="ratioDisplay" type="text" readonly class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-md num font-semibold">
+      <p id="ratioNum" class="text-[10px] text-slate-400 mt-0.5">--</p>
+    </div>
+  </div>
+
+  <!-- Prices row -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4 pt-4 border-t border-slate-100">
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">CEDEAR ARS</label>
+      <div class="flex items-center gap-1">
+        <input id="cedearPriceARS" type="number" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-md num">
+        <button id="btnFetchCedear" title="Fetch live" class="px-2 py-2 bg-slate-100 hover:bg-slate-200 rounded-md text-xs">↻</button>
+      </div>
+      <p id="cedearPriceSrc" class="text-[10px] text-slate-400 mt-0.5">--</p>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Precio EE.UU. (USD)</label>
+      <div class="flex items-center gap-1">
+        <input id="usPrice" type="number" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-md num">
+        <button id="btnFetchUS" title="Fetch live" class="px-2 py-2 bg-slate-100 hover:bg-slate-200 rounded-md text-xs">↻</button>
+      </div>
+      <p id="usPriceSrc" class="text-[10px] text-slate-400 mt-0.5">--</p>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Implícito USD</label>
+      <input id="impliedUSD" type="text" readonly class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-md num font-semibold text-indigo-700">
+      <p class="text-[10px] text-slate-400 mt-0.5">(ratio × ARS) / CCL</p>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Premium/Discount</label>
+      <input id="premium" type="text" readonly class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-md num font-semibold">
+      <p class="text-[10px] text-slate-400 mt-0.5">CEDEAR vs NYSE</p>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Precio Wallbit (USD)</label>
+      <input id="wallbitPriceUSD" type="number" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-md num">
+      <p class="text-[10px] text-slate-400 mt-0.5">Usualmente = NYSE</p>
+    </div>
+  </div>
+</section>
+
+<!-- COMMISSIONS -->
+<section class="bg-white rounded-xl shadow-sm border border-slate-200 mb-5">
+  <details>
+    <summary class="p-5 flex items-center justify-between">
+      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">2 · Comisiones y parámetros</h2>
+      <span class="chevron text-slate-400">▶</span>
+    </summary>
+    <div class="px-5 pb-5">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+        <div><label class="block text-xs text-slate-500 mb-1">Balanz comisión %</label><input id="balanzCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Balanz bonif. intradía %</label><input id="balanzIntradiaBonif" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Allaria comisión %</label><input id="allariaCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Allaria custodia $/mes</label><input id="allariaCustodiaARS" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Wallbit comisión %</label><input id="wallbitCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Fondeo Wallbit %</label><input id="fondeoWallbit" type="number" step="0.1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">IVA %</label><input id="iva" type="number" step="0.1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Derechos BYMA %</label><input id="bymaDerechos" type="number" step="0.001" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      </div>
+
+      <!-- Wallbit Plans -->
+      <div class="mt-5 pt-4 border-t border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Planes Wallbit</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-xs text-slate-500 uppercase">
+              <tr class="border-b border-slate-200">
+                <th class="text-left py-2 pr-2">Plan</th>
+                <th class="text-right py-2 px-2">Suscripción /mes</th>
+                <th class="text-right py-2 px-2">Comisión %</th>
+                <th class="text-right py-2 px-2">Cap/trade USD</th>
+                <th class="text-right py-2 pl-2">APR cuenta remun.</th>
+              </tr>
+            </thead>
+            <tbody class="num">
+              <tr class="border-b border-slate-100">
+                <td class="py-2 pr-2 font-medium">Classic</td>
+                <td class="text-right py-2 px-2"><input id="wallbitFeeClassic" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2"><input id="wallbitCommission" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2 text-slate-400">sin cap</td>
+                <td class="text-right py-2 pl-2"><input id="wallbitAPRClassic" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+              </tr>
+              <tr class="border-b border-slate-100">
+                <td class="py-2 pr-2 font-medium">Pro</td>
+                <td class="text-right py-2 px-2"><input id="wallbitFeePro" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2"><input id="wallbitCommissionPro" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2 text-slate-400">sin cap</td>
+                <td class="text-right py-2 pl-2"><input id="wallbitAPRPro" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-2 font-medium">Max</td>
+                <td class="text-right py-2 px-2"><input id="wallbitFeeMax" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2"><input id="wallbitCommissionMax" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2"><input id="wallbitCapMax" type="number" step="0.1" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 pl-2"><input id="wallbitAPRMax" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-slate-400 mt-3">Balanz: 0,50% + IVA, bonif. 50% intradía, 0 custodia, USD 0,03/CEDEAR conversión. Allaria autogestión: 0,50% + IVA, $35 + IVA/mes custodia. Wallbit: 4,5% fondeo (ARS o USD desde cuenta AR) aplica a los 3 planes.</p>
+    </div>
+  </details>
+</section>
+
+<!-- SCENARIOS -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">3A · Escenario A</h2>
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <div><label class="block text-xs text-slate-500 mb-1">Notional por trade (USD)</label><input id="A_notionalUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      <div><label class="block text-xs text-slate-500 mb-1">Round-trips (año)</label><input id="A_numRT" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      <div><label class="block text-xs text-slate-500 mb-1">Horizonte (meses)</label><input id="A_meses" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      <div><label class="block text-xs text-slate-500 mb-1">Origen fondos</label>
+        <select id="A_origenFondos" class="w-full px-2 py-1.5 border border-slate-300 rounded">
+          <option value="ars_local">ARS desde cuenta AR</option>
+          <option value="usd_local">USD desde cuenta AR</option>
+          <option value="usd_exterior">USD desde exterior</option>
+        </select>
+      </div>
+      <div class="col-span-2"><label class="block text-xs text-slate-500 mb-1">Capital ocioso promedio en cuenta remunerada (USD) · <span class="text-slate-400">beneficio APR Wallbit</span></label><input id="A_idleUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num" placeholder="0 = sin beneficio APR"></div>
+    </div>
+    <div id="A_results" class="mt-4"></div>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">3B · Escenario B</h2>
+    <div class="grid grid-cols-2 gap-3 text-sm">
+      <div><label class="block text-xs text-slate-500 mb-1">Notional por trade (USD)</label><input id="B_notionalUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      <div><label class="block text-xs text-slate-500 mb-1">Round-trips (año)</label><input id="B_numRT" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      <div><label class="block text-xs text-slate-500 mb-1">Horizonte (meses)</label><input id="B_meses" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+      <div><label class="block text-xs text-slate-500 mb-1">Origen fondos</label>
+        <select id="B_origenFondos" class="w-full px-2 py-1.5 border border-slate-300 rounded">
+          <option value="ars_local">ARS desde cuenta AR</option>
+          <option value="usd_local">USD desde cuenta AR</option>
+          <option value="usd_exterior">USD desde exterior</option>
+        </select>
+      </div>
+      <div class="col-span-2"><label class="block text-xs text-slate-500 mb-1">Capital ocioso promedio en cuenta remunerada (USD) · <span class="text-slate-400">beneficio APR Wallbit</span></label><input id="B_idleUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num" placeholder="0 = sin beneficio APR"></div>
+    </div>
+    <div id="B_results" class="mt-4"></div>
+  </div>
+</section>
+
+<!-- CHART + RECO -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+  <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">4 · Costo total vs N round-trips</h2>
+    <div style="height:320px;"><canvas id="costChart"></canvas></div>
+    <p class="text-[11px] text-slate-400 mt-2">Notional y origen tomados del Escenario A. Break-even marcado donde Balanz (swing) cruza a Wallbit.</p>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">5 · Recomendación</h2>
+    <div id="reco" class="text-sm"></div>
+    <div class="mt-4 pt-4 border-t border-slate-100">
+      <p class="text-xs text-slate-500 mb-2">Break-even (round-trips/año) Balanz swing vs Wallbit:</p>
+      <p id="breakeven" class="text-lg font-bold text-indigo-700 num">--</p>
+    </div>
+  </div>
+</section>
+
+<!-- POSTULADO WALLBIT: alta frecuencia -->
+<section class="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl border border-indigo-200 p-5 mb-5">
+  <h2 class="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3">6 · Postulado: cuándo Wallbit le gana a Balanz</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
+    <div>
+      <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Lógica</p>
+      <p class="text-slate-700 text-[13px] leading-relaxed">
+        El 4,5% de fondeo de Wallbit es <b>one-time</b>: lo pagás una sola vez al transferir, y después podés rotar ese capital todas las veces que quieras. Balanz, en cambio, cobra comisión full en cada trade.
+        Con Wallbit <b>Max</b>, además, la comisión tiene un cap de $10/trade — así que en notional alto el costo por RT es casi fijo.
+      </p>
+    </div>
+    <div>
+      <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Break-even por plan (Escenario A)</p>
+      <div id="breakevenPorPlan" class="space-y-1 text-[13px] num"></div>
+    </div>
+    <div>
+      <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Veredicto</p>
+      <div id="postuladoVeredicto" class="text-[13px] text-slate-700 leading-relaxed"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="text-xs text-slate-400 text-center pb-6 space-y-2">
+  <p>Datos BYMA 16-Abr-2026 · CCL en vivo vía dolarapi.com · Precios CEDEAR/USA vía data912.com</p>
+  <p>Calculadora educativa · No constituye asesoramiento financiero</p>
+  <details class="max-w-2xl mx-auto text-left bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+    <summary class="cursor-pointer font-semibold text-amber-800">¿Los precios aparecen "no data"? → Tips</summary>
+    <div class="mt-2 space-y-1.5 text-amber-900 text-[11px] leading-relaxed">
+      <p>Si abriste el archivo con doble clic (<code>file://</code>), el browser bloquea muchas APIs por CORS. Soluciones:</p>
+      <p>1. <b>Servir localmente</b>: abrí terminal en la carpeta del archivo y corré <code>python3 -m http.server 8000</code>, después abrí <code>http://localhost:8000/calculadora_cedear_vs_wallbit.html</code>.</p>
+      <p>2. <b>Input manual</b>: dejá los valores a mano en los campos CEDEAR ARS / Precio EE.UU. — toda la lógica sigue funcionando.</p>
+      <p>3. La app intenta 4 rutas: directa + 3 proxies CORS (corsproxy.io, allorigins, codetabs). Si todas fallan al mismo tiempo, los servicios están caídos.</p>
+    </div>
+  </details>
+  <div class="mt-2"><button id="btnReset" class="px-3 py-1.5 border border-slate-300 rounded-md hover:bg-slate-100">Resetear todo</button></div>
+</footer>
+
+</div>
+
+<script>
+// ============================================================
+// DATA (414 CEDEARs parsed from BYMA PDF 16-Abr-2026)
+// ============================================================
+const CEDEARS=[{"ticker":"AABA","name":"Altaba Inc.","market":"NASDAQ","ratio":"3:1"},{"ticker":"AAL","name":"American Airlines Group Inc","market":"NASDAQ","ratio":"2:1"},{"ticker":"AAP","name":"Advanced Auto Parts Inc","market":"NYSE","ratio":"14:1"},{"ticker":"AAPL","name":"Apple Inc.","market":"NASDAQ","ratio":"20:1"},{"ticker":"ABBV","name":"AbbVie Inc.","market":"NYSE","ratio":"10:1"},{"ticker":"ABEV","name":"Ambev S.A.","market":"NASDAQ","ratio":"1:3"},{"ticker":"ABEV3","name":"Ambev S.A.","market":"B3","ratio":"1:1"},{"ticker":"ABNB","name":"Airbnb Inc","market":"NASDAQ GS","ratio":"15:1"},{"ticker":"ABT","name":"Abbott Labs","market":"NYSE","ratio":"4:1"},{"ticker":"ACN","name":"Accenture","market":"NYSE","ratio":"75:1"},{"ticker":"ACWI","name":"iShares MSCI ACWI ETF","market":"NASDAQ","ratio":"26:1"},{"ticker":"ADBE","name":"Adobe Systems Incorporated","market":"NASDAQ","ratio":"44:1"},{"ticker":"ADGO","name":"Adecoagro S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"ADI","name":"Analog Devices","market":"NASDAQ","ratio":"15:1"},{"ticker":"ADP","name":"Automatic Data Processing Inc.","market":"NASDAQ","ratio":"6:1"},{"ticker":"ADS","name":"Adidas AG","market":"XETRA","ratio":"22:1"},{"ticker":"AEG","name":"Aegon N.V.","market":"NYSE","ratio":"1:1"},{"ticker":"AEM","name":"Agnico Eagle Mines Limited","market":"NYSE","ratio":"6:1"},{"ticker":"AI","name":"C3.AI INC","market":"NYSE","ratio":"5:1"},{"ticker":"AIG","name":"American International Group (AIG)","market":"NYSE","ratio":"5:1"},{"ticker":"AKO.B","name":"Embotelladora Andina S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"ALAB","name":"Astera Labs Inc","market":"NASDAQ","ratio":"44:1"},{"ticker":"AMAT","name":"Applied Materials Inc.","market":"NASDAQ","ratio":"5:1"},{"ticker":"AMD","name":"Advanced Micro Devices, Inc.","market":"NASDAQ","ratio":"10:1"},{"ticker":"AMGN","name":"Amgen Inc.","market":"NASDAQ","ratio":"30:1"},{"ticker":"AMX","name":"America Movil","market":"NYSE","ratio":"1:1"},{"ticker":"AMZN","name":"Amazon.Com, Inc.","market":"NYSE","ratio":"144:1"},{"ticker":"ANF","name":"Abercrombie & Fitch Co","market":"NYSE","ratio":"1:1"},{"ticker":"AOCA","name":"Aluminum Corp Of China","market":"NYSE","ratio":"1:1"},{"ticker":"ARCO","name":"Arcos Dorados Holdings Inc.","market":"NYSE","ratio":"1:2"},{"ticker":"ARKK","name":"ARK INNOVATION","market":"NYSE Arca","ratio":"10:1"},{"ticker":"ARM","name":"ARM Holdings Plc","market":"NASDAQ","ratio":"27:1"},{"ticker":"ASML","name":"ASML HOLDING NV","market":"NASDAQ GS","ratio":"146:1"},{"ticker":"ASR","name":"Grupo Aeroportuario Del Sureste , S.A.B. de C.V.","market":"NYSE","ratio":"20:1"},{"ticker":"ASTS","name":"AST SpaceMobile Inc","market":"NASDAQ","ratio":"15:1"},{"ticker":"ATAD","name":"Pjsc Tatneft","market":"LONDON STOCK EXCHANGE","ratio":"4:1"},{"ticker":"AUY","name":"Yamana Gold Inc.","market":"NYSE","ratio":"1:1"},{"ticker":"AVGO","name":"Broadcom Inc.","market":"NASDAQ","ratio":"39:1"},{"ticker":"AVY","name":"Avery Dennison Corp.","market":"NYSE","ratio":"18:1"},{"ticker":"AXP","name":"American Express Co","market":"NYSE","ratio":"15:1"},{"ticker":"AZN","name":"Astrazeneca Plc","market":"NYSE","ratio":"4:1"},{"ticker":"B","name":"Barrick Gold Corp","market":"NYSE","ratio":"2:1"},{"ticker":"BA","name":"The Boeing Company","market":"NYSE","ratio":"24:1"},{"ticker":"BA.C","name":"Bank Of America Corporation","market":"NYSE","ratio":"4:1"},{"ticker":"BABA","name":"Alibaba Group Holding Limited","market":"NYSE","ratio":"9:1"},{"ticker":"BAK","name":"Braskem SA","market":"NYSE","ratio":"2:1"},{"ticker":"BAS","name":"Basf SE","market":"FRANKFURT","ratio":"2:1"},{"ticker":"BAYN","name":"Bayer AG","market":"FRANKFURT","ratio":"3:1"},{"ticker":"BB","name":"Blackberry Limited","market":"NASDAQ","ratio":"3:1"},{"ticker":"BBAS3","name":"Banco do Brasil S.A.","market":"B3","ratio":"2:1"},{"ticker":"BBD","name":"Banco Bradesco S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"BBDC3","name":"Banco Bradesco S.A.","market":"B3","ratio":"1:1"},{"ticker":"BBV","name":"Bilbao Vizcaya Argentaria S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"BCS","name":"Barclays Bank Plc","market":"NYSE","ratio":"1:1"},{"ticker":"BHP","name":"Bhp Group Ltd","market":"NYSE","ratio":"2:1"},{"ticker":"BIDU","name":"Baidu, Inc.","market":"NASDAQ","ratio":"11:1"},{"ticker":"BIIB","name":"Biogen Inc.","market":"NASDAQ","ratio":"13:1"},{"ticker":"BIOX","name":"Bioceres Crop Solutions Corp.","market":"NYSE American","ratio":"1:1"},{"ticker":"BK","name":"The Bank Of New York Mellon Corp.","market":"NYSE","ratio":"2:1"},{"ticker":"BKNG","name":"Booking","market":"NASDAQ","ratio":"700:1"},{"ticker":"BKR","name":"Baker Hughes Co","market":"NASDAQ","ratio":"7:1"},{"ticker":"BMNR","name":"Bitmine Inmersion Technologies, Inc.","market":"NYSE","ratio":"8:1"},{"ticker":"BMY","name":"Bristol-Myers Squibb Company","market":"NYSE","ratio":"3:1"},{"ticker":"BNG","name":"Bunge Limited","market":"NYSE","ratio":"5:1"},{"ticker":"BP","name":"BP PCL","market":"NYSE","ratio":"5:1"},{"ticker":"BPA11","name":"Banco BTG Pactual S.A.","market":"B3","ratio":"1:1"},{"ticker":"BRFS","name":"BRF S.A.","market":"NYSE","ratio":"1:3"},{"ticker":"BRKB","name":"Berkshire Hathaway Inc.","market":"NYSE","ratio":"22:1"},{"ticker":"BSBR","name":"Banco Santander (Brasil) S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"BSN","name":"Danone","market":"FRANKFURT","ratio":"20:1"},{"ticker":"BX","name":"Blackstone Inc.","market":"NYSE","ratio":"30:1"},{"ticker":"C","name":"Citigroup Inc","market":"NYSE","ratio":"3:1"},{"ticker":"CAAP","name":"Corporación America Airports S.A.","market":"NYSE","ratio":"1:4"},{"ticker":"CAH","name":"Cardinal Health Inc","market":"NYSE","ratio":"3:1"},{"ticker":"CAJ","name":"Canon Inc","market":"NYSE","ratio":"2:1"},{"ticker":"CAR","name":"Avis Budget Group Inc.","market":"NASDAQ","ratio":"26:1"},{"ticker":"CAT","name":"Caterpillar Inc","market":"NYSE","ratio":"20:1"},{"ticker":"CBRD","name":"Companhia Brasileira De Dis NPV ADR","market":"NYSE","ratio":"1:1"},{"ticker":"CCL","name":"Carnival","market":"NYSE","ratio":"3:1"},{"ticker":"CDE","name":"Coeur Mining Inc.","market":"NYSE","ratio":"1:1"},{"ticker":"CEG","name":"CONSTELLATION ENERGY CORPORATION","market":"NASDAQ GS","ratio":"45:1"},{"ticker":"CIBR","name":"First Trust NASDAQ Cybersecurity","market":"NASDAQ GM","ratio":"10:1"},{"ticker":"CL","name":"Colgate Palmolive Co","market":"NYSE","ratio":"3:1"},{"ticker":"CLS","name":"CELESTICA INC","market":"NYSE","ratio":"20:1"},{"ticker":"COIN","name":"Coinbase Global Inc","market":"NASDAQ","ratio":"27:1"},{"ticker":"COPX","name":"Global X Copper Miners ETF","market":"NYSE","ratio":"14:1"},{"ticker":"COST","name":"Costco Wholesale Corp","market":"NASDAQ","ratio":"48:1"},{"ticker":"CRM","name":"Salesforce Inc.","market":"NYSE","ratio":"18:1"},{"ticker":"CRWV","name":"CoreWeave Inc","market":"NASDAQ","ratio":"27:1"},{"ticker":"CS","name":"Credit Suisse Group","market":"NYSE","ratio":"1:1"},{"ticker":"CSCO","name":"Cisco Systems Inc","market":"NASDAQ","ratio":"5:1"},{"ticker":"CSNA3","name":"Companhia Siderúrgica Nacional S.A.","market":"B3","ratio":"1:1"},{"ticker":"CVS","name":"CVS Health","market":"NYSE","ratio":"15:1"},{"ticker":"CVX","name":"Chevron Corp.","market":"NYSE","ratio":"16:1"},{"ticker":"CX","name":"Cemex S.A.B. de CV","market":"NYSE","ratio":"1:1"},{"ticker":"DAL","name":"Delta Air Lines","market":"NYSE","ratio":"8:1"},{"ticker":"DD","name":"Dupont de Nemours Inc.","market":"NYSE","ratio":"5:1"},{"ticker":"DE","name":"Deere & Co.","market":"NYSE","ratio":"40:1"},{"ticker":"DECK","name":"DECKERS OUTDOOR CORPORATION","market":"NYSE","ratio":"25:1"},{"ticker":"DEO","name":"Diageo PLC","market":"NYSE","ratio":"6:1"},{"ticker":"DHR","name":"Danaher Corp","market":"NYSE","ratio":"54:1"},{"ticker":"DIA","name":"SPDR DOW JONES INDUSTRIAL","market":"NYSE Arca","ratio":"20:1"},{"ticker":"DISN","name":"The Walt Disney Co.","market":"NYSE","ratio":"12:1"},{"ticker":"DOCU","name":"DocuSign Inc.","market":"NASDAQ","ratio":"22:1"},{"ticker":"DOW","name":"DOW Inc","market":"NYSE","ratio":"6:1"},{"ticker":"DTEA","name":"Deutsche Telekom Ag","market":"OTC US","ratio":"3:1"},{"ticker":"E","name":"Eni Spa","market":"NYSE","ratio":"4:1"},{"ticker":"EA","name":"Electronic Arts Inc","market":"NASDAQ","ratio":"14:1"},{"ticker":"EBAY","name":"Ebay Inc.","market":"NASDAQ","ratio":"2:1"},{"ticker":"EBR","name":"Centrais Eléctricas Brasileiras S.A. - Eletrobras","market":"NYSE","ratio":"1:4"},{"ticker":"ECL","name":"Ecolab Inc","market":"NYSE","ratio":"56:1"},{"ticker":"EEM","name":"ISHARES MSCI EMERGING MARKET","market":"NYSE Arca","ratio":"5:1"},{"ticker":"EFA","name":"iShares MSCI EAFE ETF","market":"NYSE","ratio":"18:1"},{"ticker":"EFX","name":"Equifax Inc.","market":"NYSE","ratio":"16:1"},{"ticker":"ELP","name":"Companhia Paranaense de Energía - COPEL","market":"NYSE","ratio":"1:3"},{"ticker":"EOAN","name":"E.On Se","market":"FRANKFURT","ratio":"6:1"},{"ticker":"EQNR","name":"Equinor Asa","market":"NYSE","ratio":"6:1"},{"ticker":"ERIC","name":"Lm Ericsson Telephone Co.","market":"NASDAQ","ratio":"2:1"},{"ticker":"ERJ","name":"Embraer-Empresa Brasileira de Aeronáutica S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"ESGU","name":"IShares ESG Aware MSCI USA ETF","market":"NASDAQ","ratio":"30:1"},{"ticker":"ETHA","name":"ISHARES ETHEREUM TR ETF","market":"NASDAQ","ratio":"5:1"},{"ticker":"ETSY","name":"Etsy Inc.","market":"NASDAQ","ratio":"16:1"},{"ticker":"EWJ","name":"iShares MSCI JAPAN ETF","market":"NYSE Arca","ratio":"14:1"},{"ticker":"EWY","name":"iShares MSCI South Korea ETF","market":"NYSE ARCA","ratio":"50:1"},{"ticker":"EWZ","name":"ISHARES MSCI BRAZIL CAP","market":"NYSE Arca","ratio":"2:1"},{"ticker":"F","name":"Ford Motor Company","market":"NYSE","ratio":"1:1"},{"ticker":"FCX","name":"Freeport Mcmoran Copper & Gold Inc.","market":"NYSE","ratio":"3:1"},{"ticker":"FDX","name":"Fedex Corp","market":"NYSE","ratio":"10:1"},{"ticker":"FMCC","name":"Freddie Mac (Federal Home Loan)","market":"OTC","ratio":"1:1"},{"ticker":"FMX","name":"Fomento Economico Mexicano - Femsa","market":"NYSE","ratio":"6:1"},{"ticker":"FNMA","name":"Fed. Natl, Mortgage - Fannie Mae","market":"OTC","ratio":"1:1"},{"ticker":"FSLR","name":"First Solar Inc.","market":"NASDAQ","ratio":"18:1"},{"ticker":"FXI","name":"ISHARES CHINA LARGE-CAP ETF","market":"NYSE","ratio":"5:1"},{"ticker":"GDX","name":"Van Eck Gold Miners ETF/USA","market":"NYSE","ratio":"10:1"},{"ticker":"GE","name":"General Electric Co.","market":"NYSE","ratio":"8:1"},{"ticker":"GFI","name":"Gold Fields Ltd.","market":"NYSE","ratio":"1:1"},{"ticker":"GGB","name":"Gerdau S.A.","market":"NYSE","ratio":"1:4"},{"ticker":"GILD","name":"Gilead Sciences, Inc.","market":"NASDAQ","ratio":"4:1"},{"ticker":"GLD","name":"ETF SPDR GOLD TRUST","market":"NYSE","ratio":"50:1"},{"ticker":"GLOB","name":"Globant S.A.","market":"NYSE","ratio":"18:1"},{"ticker":"GLW","name":"Corning Inc.","market":"NYSE","ratio":"4:1"},{"ticker":"GM","name":"General Motors Co","market":"NYSE","ratio":"6:1"},{"ticker":"GOOGL","name":"Alphabet Inc.","market":"NASDAQ","ratio":"58:1"},{"ticker":"GPRK","name":"Geopark Ltd.","market":"NYSE","ratio":"1:1"},{"ticker":"GRMN","name":"Garmin Ltd.","market":"NASDAQ","ratio":"3:1"},{"ticker":"GS","name":"The Goldman Sachs Group, Inc","market":"NYSE","ratio":"13:1"},{"ticker":"GSK","name":"GSK Plc.","market":"NYSE","ratio":"4:1"},{"ticker":"GT","name":"Goodyear Tire & Rubber co./the","market":"NASDAQ","ratio":"2:1"},{"ticker":"HAL","name":"Halliburton Co.","market":"NYSE","ratio":"2:1"},{"ticker":"HAPV3","name":"Hapvida Participacoes E Investimentos S.A.","market":"B3","ratio":"1:1"},{"ticker":"HD","name":"The Home Depot Inc.","market":"NYSE","ratio":"32:1"},{"ticker":"HDB","name":"Hdfc Bank Limited.","market":"NYSE","ratio":"2:1"},{"ticker":"HHPD","name":"Hon Hai Precision Industry Co. Ltd.","market":"LONDON STOCK EXCHANGE","ratio":"2:1"},{"ticker":"HL","name":"Hecla Mining Co .","market":"NYSE","ratio":"1:1"},{"ticker":"HMC","name":"Honda Motor Co. Ltd","market":"NYSE","ratio":"1:1"},{"ticker":"HMY","name":"Harmony Gold Mining Company Ltd.","market":"NYSE","ratio":"1:1"},{"ticker":"HNPIY","name":"Huaneng Power Intl","market":"NYSE","ratio":"1:1"},{"ticker":"HOG","name":"Harley-Davidson Inc.","market":"NYSE","ratio":"3:1"},{"ticker":"HON","name":"Honeywell International Inc.","market":"NYSE","ratio":"8:1"},{"ticker":"HOOD","name":"Robinhood Markets Inc","market":"NASDAQ","ratio":"29:1"},{"ticker":"HPQ","name":"Hp Inc","market":"NYSE","ratio":"1:1"},{"ticker":"HSBC","name":"Hsbc Holdings Plc","market":"NYSE","ratio":"2:1"},{"ticker":"HSY","name":"The Hershey Company","market":"NYSE","ratio":"21:1"},{"ticker":"HUT","name":"Hut 8 Mining Corp.","market":"NASDAQ GS","ratio":"1:5"},{"ticker":"HWM","name":"Howmet Aerospace Inc.","market":"NYSE","ratio":"1:1"},{"ticker":"IBB","name":"iShares Nasdaq Biotechnology ETF","market":"NASDAQ","ratio":"27:1"},{"ticker":"IBIT","name":"ISHARES BITCOIN TRUST","market":"NASDAQ","ratio":"10:1"},{"ticker":"IBM","name":"International Business Machines","market":"NYSE","ratio":"15:1"},{"ticker":"IBN","name":"Icici Bank Ltd.","market":"NYSE","ratio":"1:1"},{"ticker":"ICLN","name":"iShares Global Clean Energy ETF","market":"NASDAQ GM","ratio":"5:1"},{"ticker":"IEMG","name":"iShares Core MSCI Emerging Markets ETF","market":"NYSE","ratio":"12:1"},{"ticker":"IEUR","name":"iShares Core MSCI Europe ETF","market":"NYSE Arca","ratio":"11:1"},{"ticker":"IFF","name":"International Flavors & Fragrances Inc.","market":"NYSE","ratio":"12:1"},{"ticker":"IJH","name":"iShares CORE S&P MID-CAP ETF","market":"NYSE Arca","ratio":"12:1"},{"ticker":"ILF","name":"IShares Latin America 40 ETF","market":"NYSE","ratio":"6:1"},{"ticker":"INFY","name":"Infosys Limited","market":"NASDAQ","ratio":"1:1"},{"ticker":"ING","name":"Ing Groep Nv","market":"NYSE","ratio":"3:1"},{"ticker":"INTC","name":"Intel Corporation","market":"NASDAQ","ratio":"5:1"},{"ticker":"IP","name":"International Paper Co.","market":"NYSE","ratio":"4:1"},{"ticker":"IREN","name":"Iren Ltd","market":"NASDAQ","ratio":"12:1"},{"ticker":"ISRG","name":"Intuitive Surgical inc","market":"NASDAQ","ratio":"90:1"},{"ticker":"ITA","name":"iShares U.S. Aerospace & Defense","market":"CBOE","ratio":"50:1"},{"ticker":"ITUB","name":"Itaú Unibanco Holding S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"ITUB3","name":"Banco Itaú Unibanco S.A","market":"B3","ratio":"1:1"},{"ticker":"IVE","name":"iShares S&P 500 Value ETF","market":"NYSE Arca","ratio":"40:1"},{"ticker":"IVV","name":"IShares Core S&P 500 ETF","market":"NYSE","ratio":"692:1"},{"ticker":"IVW","name":"iShares S&P 500 Growth ETF","market":"NYSE Arca","ratio":"20:1"},{"ticker":"IWM","name":"ISHARES TRUST RUSSELL 2000","market":"NYSE Arca","ratio":"10:1"},{"ticker":"JCI","name":"Johnson Controls International","market":"NYSE","ratio":"2:1"},{"ticker":"JD","name":"Jd.Com, Inc.","market":"NASDAQ","ratio":"4:1"},{"ticker":"JMIA","name":"Adr Jumia Technologies Ag","market":"NYSE","ratio":"1:1"},{"ticker":"JNJ","name":"Johnson & Johnson","market":"NYSE","ratio":"15:1"},{"ticker":"JOYY","name":"JOYY Inc.","market":"NASDAQ","ratio":"5:1"},{"ticker":"JPM","name":"J.P. Morgan & Chase Co.","market":"NYSE","ratio":"15:1"},{"ticker":"KB","name":"Kb Financial Group Inc.","market":"NYSE","ratio":"2:1"},{"ticker":"KEEL","name":"Bitfarms Ltd.","market":"NASDAQ GM","ratio":"1:5"},{"ticker":"KEP","name":"Korea Electric Power Corp.","market":"NYSE","ratio":"1:1"},{"ticker":"KGC","name":"Kinross Gold Corp","market":"NYSE","ratio":"1:1"},{"ticker":"KMB","name":"Kimberly-Clark Corp.","market":"NYSE","ratio":"6:1"},{"ticker":"KO","name":"The Coca Cola Company","market":"NYSE","ratio":"5:1"},{"ticker":"KOFM","name":"Coca-Cola Femsa, S.A.B. De C.V.","market":"NYSE","ratio":"2:1"},{"ticker":"LAC","name":"Lithium Americas Corp","market":"NYSE","ratio":"1:1"},{"ticker":"LAR","name":"Lithium Americas (Argentina) Corp","market":"NYSE","ratio":"1:1"},{"ticker":"LFC","name":"China Life Insurance","market":"NYSE","ratio":"2:1"},{"ticker":"LKOD","name":"Pjsc Lukoil","market":"LONDON STOCK EXCHANGE","ratio":"4:1"},{"ticker":"LLY","name":"Eli Lilly and Company","market":"NYSE","ratio":"56:1"},{"ticker":"LMT","name":"Lockheed Martin Corporation","market":"NYSE","ratio":"20:1"},{"ticker":"LND","name":"Brasilagro - Co Brasileira de Propriedades Agrícolas","market":"NYSE","ratio":"1:1"},{"ticker":"LRCX","name":"Lam Research Corp","market":"NASDAQ","ratio":"56:1"},{"ticker":"LREN3","name":"Lojas Renner S.A.","market":"B3","ratio":"1:1"},{"ticker":"LVS","name":"Las Vegas Sands Corp","market":"NYSE","ratio":"2:1"},{"ticker":"LYG","name":"Lloyds Banking Group Plc","market":"NYSE","ratio":"2:1"},{"ticker":"MA","name":"Mastercard Inc.","market":"NYSE","ratio":"33:1"},{"ticker":"MBG","name":"Mercedes-Benz Group AG","market":"FRANKFURT","ratio":"4:1"},{"ticker":"MBT","name":"Mobile Telesystems","market":"NYSE","ratio":"2:1"},{"ticker":"MCD","name":"Mcdonald'S Corp.","market":"NYSE","ratio":"24:1"},{"ticker":"MDLZ","name":"Mondelez","market":"NASDAQ","ratio":"15:1"},{"ticker":"MDT","name":"Medtronic Public Limited Company","market":"NYSE","ratio":"4:1"},{"ticker":"MELI","name":"Mercadolibre Inc.","market":"NASDAQ","ratio":"120:1"},{"ticker":"META","name":"Meta Platforms Inc","market":"NASDAQ","ratio":"24:1"},{"ticker":"MFG","name":"Mizuho Financial Group","market":"NYSE","ratio":"1:1"},{"ticker":"MGLU3","name":"Magazine Luiza S.A.","market":"B3","ratio":"1:1"},{"ticker":"MMC","name":"Marsh & Mclennan Companies Inc.","market":"NYSE","ratio":"16:1"},{"ticker":"MMM","name":"3M Company","market":"NYSE","ratio":"10:1"},{"ticker":"MO","name":"Altria Group Inc.","market":"NYSE","ratio":"4:1"},{"ticker":"MOS","name":"The Mosaic Co","market":"NYSE","ratio":"5:1"},{"ticker":"MRK","name":"Merck & Co. Inc.","market":"NYSE","ratio":"5:1"},{"ticker":"MRNA","name":"Moderna Inc","market":"NASDAQ","ratio":"19:1"},{"ticker":"MRVL","name":"Marvell Technology Inc","market":"NASDAQ","ratio":"14:1"},{"ticker":"MSFT","name":"Microsoft Corp.","market":"NASDAQ","ratio":"30:1"},{"ticker":"MSI","name":"Motorola Solutions, Inc.","market":"NYSE","ratio":"20:1"},{"ticker":"MSTR","name":"Microstrategy Inc Cl A New","market":"NASDAQ GS","ratio":"20:1"},{"ticker":"MU","name":"Micron Technology Inc","market":"NASDAQ GS","ratio":"5:1"},{"ticker":"MUFG","name":"Mitsubishi Ufj Financial Group","market":"NYSE","ratio":"1:1"},{"ticker":"MUX","name":"McEwen Mining Inc","market":"NYSE","ratio":"2:1"},{"ticker":"NATU3","name":"NATURA COSMETICOS SA","market":"B3","ratio":"1:1"},{"ticker":"NEC1","name":"Nec Corporation","market":"FRANKFURT","ratio":"1:3"},{"ticker":"NEM","name":"Newmont Corporation","market":"NYSE","ratio":"3:1"},{"ticker":"NFLX","name":"Netflix, Inc.","market":"NASDAQ","ratio":"48:1"},{"ticker":"NG","name":"Novagold Resources INC.","market":"NYSE","ratio":"1:4"},{"ticker":"NGG","name":"National Grid Plc","market":"NYSE","ratio":"2:1"},{"ticker":"NIO","name":"NIO Inc.","market":"NYSE","ratio":"4:1"},{"ticker":"NKE","name":"Nike Inc.","market":"NYSE","ratio":"12:1"},{"ticker":"NLM","name":"Novolipetsk Steel PJSC","market":"LONDON STOCK EXCHANGE","ratio":"2:1"},{"ticker":"NMR","name":"Nomura Holdings, Inc","market":"NYSE","ratio":"1:1"},{"ticker":"NOKA","name":"Nokia Corporation","market":"NYSE","ratio":"1:1"},{"ticker":"NOW","name":"SERVICENOW INC","market":"NYSE","ratio":"172:1"},{"ticker":"NSAN","name":"Nissan Motor Co., Ltd","market":"OTC US","ratio":"1:1"},{"ticker":"NTES","name":"Netease, Inc","market":"NASDAQ","ratio":"14:1"},{"ticker":"NUE","name":"Nucor Corp","market":"NYSE","ratio":"16:1"},{"ticker":"NVDA","name":"Nvidia Corporation","market":"NASDAQ","ratio":"24:1"},{"ticker":"NVS","name":"Novartis Ag","market":"NYSE","ratio":"4:1"},{"ticker":"NXE","name":"Nexgen Energy LTD","market":"NYSE","ratio":"1:1"},{"ticker":"OGZD","name":"Pjsc Gazprom","market":"LONDON STOCK EXCHANGE","ratio":"2:1"},{"ticker":"OKLO","name":"Oklo Inc","market":"NYSE","ratio":"28:1"},{"ticker":"ORAN","name":"Orange S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"ORCL","name":"Oracle Corporation","market":"NYSE","ratio":"3:1"},{"ticker":"ORLY","name":"O'reilly Automotive Inc","market":"NASDAQ","ratio":"222:1"},{"ticker":"OXY","name":"Occidental Petroleum Corp.","market":"NYSE","ratio":"5:1"},{"ticker":"PAAS","name":"Pan American Silver Corp.","market":"NASDAQ","ratio":"3:1"},{"ticker":"PAC","name":"Grupo Aeroportuario del Pacifico, S.A.B. de C.V.","market":"NYSE","ratio":"16:1"},{"ticker":"PAGS","name":"Pagseguro Digital Ltd","market":"NYSE","ratio":"3:1"},{"ticker":"PANW","name":"Palo Alto Networks Inc","market":"NASDAQ GS","ratio":"50:1"},{"ticker":"PATH","name":"UIPATH INC","market":"NYSE","ratio":"2:1"},{"ticker":"PBI","name":"Pitney Bowes Inc","market":"NYSE","ratio":"1:1"},{"ticker":"PBR","name":"Petrobras (ADR)","market":"NYSE","ratio":"1:1"},{"ticker":"PCAR","name":"Paccar Inc.","market":"NASDAQ","ratio":"3:1"},{"ticker":"PCRF","name":"Panasonic Corporation","market":"OTC US","ratio":"2:1"},{"ticker":"PDD","name":"PDD HOLDINGS INC","market":"NASDAQ GS","ratio":"25:1"},{"ticker":"PEP","name":"Pepsico Inc","market":"NASDAQ","ratio":"18:1"},{"ticker":"PETR3","name":"Petrobras - Petróleo Brasileiro S.A.","market":"B3","ratio":"1:1"},{"ticker":"PFE","name":"Pfizer Inc.","market":"NYSE","ratio":"4:1"},{"ticker":"PG","name":"Procter & Gamble","market":"NYSE","ratio":"15:1"},{"ticker":"PHG","name":"Koninklijke Philips N.V.","market":"NYSE","ratio":"5:1"},{"ticker":"PINS","name":"Pinterest","market":"NYSE","ratio":"7:1"},{"ticker":"PKS","name":"Posco Holdings Inc.","market":"NYSE","ratio":"3:1"},{"ticker":"PLTR","name":"Palantir Technologies Inc","market":"NYSE","ratio":"3:1"},{"ticker":"PM","name":"Philip Morris International","market":"NYSE","ratio":"18:1"},{"ticker":"PRIO3","name":"Petro Rio S.A.","market":"B3","ratio":"2:1"},{"ticker":"PSO","name":"Pearson Plc","market":"NYSE","ratio":"1:1"},{"ticker":"PSQ","name":"PROSHARES SHORT QQQ","market":"NYSE Arca","ratio":"8:1"},{"ticker":"PSX","name":"Phillips 66","market":"NYSE","ratio":"6:1"},{"ticker":"PTR","name":"Petrochina Co Ltd","market":"NYSE","ratio":"4:1"},{"ticker":"PYPL","name":"Paypal Holdings, Inc.","market":"NASDAQ","ratio":"8:1"},{"ticker":"QCOM","name":"Qualcomm Inc.","market":"NASDAQ","ratio":"11:1"},{"ticker":"QQQ","name":"INVESCO QQQ TRUST","market":"NASDAQ","ratio":"20:1"},{"ticker":"RACE","name":"Ferrari","market":"NYSE","ratio":"83:1"},{"ticker":"RBLX","name":"Roblox Corp.","market":"NYSE","ratio":"2:1"},{"ticker":"RCTB4","name":"Telebras PN","market":"BOVESPA","ratio":"1:1000"},{"ticker":"RENT3","name":"Localiza Rent A Car S.A.","market":"B3","ratio":"2:1"},{"ticker":"RGTI","name":"RIGETTI COMPUTING INC","market":"NASDAQ CM","ratio":"2:1"},{"ticker":"RIO","name":"Rio Tinto Plc","market":"NYSE","ratio":"8:1"},{"ticker":"RIOT","name":"Riot Platforms","market":"NASDAQ","ratio":"3:1"},{"ticker":"RKLB","name":"Rocket Lab Corp","market":"NASDAQ","ratio":"12:1"},{"ticker":"ROKU","name":"Roku","market":"NASDAQ","ratio":"13:1"},{"ticker":"ROST","name":"Ross Stores, Inc.","market":"NASDAQ","ratio":"4:1"},{"ticker":"RSP","name":"Invesco S&P 500 eql wght ETF","market":"NYSE ARCA","ratio":"30:1"},{"ticker":"RTX","name":"Raytheon Technologies Corp","market":"NYSE","ratio":"5:1"},{"ticker":"SAN","name":"Banco Santander S.A","market":"NYSE","ratio":"1:4"},{"ticker":"SAP","name":"Sap Se","market":"NYSE","ratio":"6:1"},{"ticker":"SATL","name":"Satellogic Inc.","market":"NASDAQ GS","ratio":"1:1"},{"ticker":"SBS","name":"Companhia de Saneamento Básico do Estado de São Paulo–Sabesp","market":"NYSE","ratio":"1:2"},{"ticker":"SBSP3","name":"Cia Saneamento Básico de SP","market":"B3","ratio":"1:1"},{"ticker":"SBUX","name":"Starbucks Corporation","market":"NASDAQ","ratio":"12:1"},{"ticker":"SCCO","name":"Southern Copper Corp","market":"NYSE","ratio":"2:1"},{"ticker":"SCHW","name":"Charles Schwab","market":"NYSE","ratio":"13:1"},{"ticker":"SDA","name":"SunCar Technology Group Inc","market":"NASDAQ","ratio":"2:1"},{"ticker":"SE","name":"Sea Ltd.","market":"NYSE","ratio":"32:1"},{"ticker":"SH","name":"PROSHARES SHORT S&P500","market":"NYSE","ratio":"8:1"},{"ticker":"SHEL","name":"Royal Dutch Shell Plc","market":"NYSE","ratio":"2:1"},{"ticker":"SHOP","name":"Shopify Inc.","market":"NYSE","ratio":"107:1"},{"ticker":"SHPW","name":"Shapeways Holdings Inc","market":"NYSE","ratio":"1:2"},{"ticker":"SI","name":"Silvergate Bancorp","market":"NYSE","ratio":"10:1"},{"ticker":"SID","name":"Companhia Siderúrgica Nacional","market":"NYSE","ratio":"1:8"},{"ticker":"SIEGY","name":"Siemens Ag Adr","market":"OTC","ratio":"3:1"},{"ticker":"SLB","name":"Schlumberger Ltd","market":"NYSE","ratio":"3:1"},{"ticker":"SLV","name":"iShares SILVER TRUST","market":"NYSE Arca","ratio":"6:1"},{"ticker":"SMH","name":"VAN ECK SEMICONDUCTOR ETF","market":"NASDAQ","ratio":"50:1"},{"ticker":"SMSN","name":"Samsung Electronics Co. Ltd.","market":"LONDON STOCK EXCHANGE","ratio":"14:1"},{"ticker":"SNA","name":"Snap-On Inc","market":"NYSE","ratio":"6:1"},{"ticker":"SNAP","name":"Snap Inc.","market":"NYSE","ratio":"1:1"},{"ticker":"SNOW","name":"Snowflake Inc.","market":"NYSE","ratio":"30:1"},{"ticker":"SNP","name":"China Petroleum & Chem","market":"NYSE","ratio":"3:1"},{"ticker":"SONY","name":"Sony Group Corporation","market":"NYSE","ratio":"8:1"},{"ticker":"SPCE","name":"Virgin Galactic","market":"NYSE","ratio":"1:2"},{"ticker":"SPGI","name":"S&P Global Inc","market":"NYSE","ratio":"45:1"},{"ticker":"SPHQ","name":"Invesco S&P 500 quality ETF","market":"NYSE ARCA","ratio":"14:1"},{"ticker":"SPOT","name":"Spotify Technology S.A.","market":"NYSE","ratio":"28:1"},{"ticker":"SPXL","name":"DIREXION DAILY S&P 500 BULL 3X","market":"NYSE Arca","ratio":"25:1"},{"ticker":"SPY","name":"SPDR S&P 500","market":"NYSE Arca","ratio":"20:1"},{"ticker":"STLA","name":"Stellantis","market":"NYSE","ratio":"5:1"},{"ticker":"STNE","name":"StoneCo Ltd","market":"NASDAQ","ratio":"3:1"},{"ticker":"SUZ","name":"Suzano Papel E Celulose S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"SUZB3","name":"Suzano S.A.","market":"B3","ratio":"1:1"},{"ticker":"SWKS","name":"Skyworks Solutions","market":"NASDAQ","ratio":"21:1"},{"ticker":"SYY","name":"Sysco Corp.","market":"NYSE","ratio":"8:1"},{"ticker":"T","name":"At &T Inc.","market":"NYSE","ratio":"3:1"},{"ticker":"TCOM","name":"TRIP.COM Group Ltd.","market":"NASDAQ","ratio":"2:1"},{"ticker":"TEAM","name":"ATLASSIAN CORPORATION","market":"NASDAQ GS","ratio":"47:1"},{"ticker":"TEFO","name":"Telefonica S.A.","market":"NYSE","ratio":"8:1"},{"ticker":"TEM","name":"TEMPUS AI INC","market":"NASDAQ GS","ratio":"12:1"},{"ticker":"TEN","name":"Tenaris","market":"NYSE","ratio":"1:1"},{"ticker":"TGT","name":"Target Corporation","market":"NYSE","ratio":"24:1"},{"ticker":"TIIAY","name":"Telecom Italia S.P.A. Ordinary Shares","market":"NYSE","ratio":"1:1"},{"ticker":"TIMB","name":"Tim Participações S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"TIMS3","name":"TIM S.A.","market":"B3","ratio":"1:1"},{"ticker":"TJX","name":"TJX Companies Inc/The","market":"NYSE","ratio":"22:1"},{"ticker":"TM","name":"Toyota Motor Corporation","market":"NYSE","ratio":"15:1"},{"ticker":"TMO","name":"Thermo Fisher Scientific Inc.","market":"NYSE","ratio":"22:1"},{"ticker":"TMUS","name":"T-mobile","market":"NASDAQ","ratio":"33:1"},{"ticker":"TQQQ","name":"ProShares UltraPro QQQ","market":"NASDAQ","ratio":"25:1"},{"ticker":"TRIP","name":"Tripadvisor, Inc.","market":"NASDAQ","ratio":"2:1"},{"ticker":"TRVV","name":"The Travelers Cos. Inc.","market":"NYSE","ratio":"6:1"},{"ticker":"TSLA","name":"Tesla, Inc.","market":"NASDAQ","ratio":"15:1"},{"ticker":"TSM","name":"Taiwan Semiconductor Manufacturing","market":"NYSE","ratio":"9:1"},{"ticker":"TTE","name":"TotalEnergies SE","market":"NYSE","ratio":"3:1"},{"ticker":"TTM","name":"Tata Motors Ltd","market":"NYSE","ratio":"1:1"},{"ticker":"TV","name":"Grupo Televisa S.A.","market":"NYSE","ratio":"3:1"},{"ticker":"TWLO","name":"Twilio Inc","market":"NYSE","ratio":"36:1"},{"ticker":"TWTR","name":"Twitter, Inc.","market":"NYSE","ratio":"2:1"},{"ticker":"TXN","name":"Texas Instruments Inc","market":"NASDAQ","ratio":"5:1"},{"ticker":"TXR","name":"Ternium S.A.","market":"NYSE","ratio":"4:1"},{"ticker":"UAL","name":"United Airlines Holdings Inc.","market":"NASDAQ GS","ratio":"5:1"},{"ticker":"UBER","name":"Uber Technologies Inc.","market":"NYSE","ratio":"2:1"},{"ticker":"UGP","name":"Ultrapar Participações S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"UL","name":"Unilever PLC - Sponsored","market":"NYSE","ratio":"3:1"},{"ticker":"UN","name":"NU Holdings Ltd/Cayman Islands","market":"NYSE","ratio":"2:1"},{"ticker":"UNH","name":"UnitedHealth Group Inc.","market":"NYSE","ratio":"33:1"},{"ticker":"UNP","name":"Union Pacific Corp.","market":"NYSE","ratio":"20:1"},{"ticker":"UPST","name":"Upstart Hldgs Inc","market":"NASDAQ GS","ratio":"5:1"},{"ticker":"URA","name":"Global X Uranium ETF","market":"NYSE Arca","ratio":"5:1"},{"ticker":"URBN","name":"Urban Outfitters INC.","market":"NASDAQ","ratio":"2:1"},{"ticker":"USB","name":"U.S. Bancorp","market":"NYSE","ratio":"5:1"},{"ticker":"USO","name":"United States Oil Fund","market":"NYSE","ratio":"15:1"},{"ticker":"V","name":"Visa Inc","market":"NYSE","ratio":"18:1"},{"ticker":"VALE","name":"Vale S.A.","market":"NYSE","ratio":"2:1"},{"ticker":"VALE3","name":"Vale S.A.","market":"B3","ratio":"1:1"},{"ticker":"VEA","name":"Vanguard FTSE Developed Markets ETF","market":"NYSE Arca","ratio":"10:1"},{"ticker":"VIG","name":"VANGUARD DIVIDEND APPRECIATION","market":"NYSE Arca","ratio":"39:1"},{"ticker":"VIST","name":"Vista Energy S.A.B. de C.V.","market":"NYSE","ratio":"3:1"},{"ticker":"VIV","name":"Telefônica Brasil S.A.","market":"NYSE","ratio":"1:1"},{"ticker":"VIVT3","name":"Telefônica Brasil S.A.","market":"B3","ratio":"1:1"},{"ticker":"VOD","name":"Vodafone Group Plc","market":"NASDAQ","ratio":"1:1"},{"ticker":"VRSN","name":"Verisign, Inc.","market":"-","ratio":"6:1"},{"ticker":"VRTX","name":"VERTEX PHARMACEUTICALS INC","market":"NYSE","ratio":"101:1"},{"ticker":"VST","name":"VISTRA CORPORATION","market":"NYSE","ratio":"26:1"},{"ticker":"VXX","name":"iPath Series B S&P 500 VIX","market":"CBOE","ratio":"5:1"},{"ticker":"VZ","name":"Verizon Communications Inc.","market":"NYSE","ratio":"4:1"},{"ticker":"WBA","name":"Walgreens Boots Alliance Inc.","market":"NASDAQ","ratio":"3:1"},{"ticker":"WBO","name":"Weibo Corporation","market":"NASDAQ","ratio":"6:1"},{"ticker":"WEGE3","name":"Weg S.A.","market":"B3","ratio":"1:1"},{"ticker":"WFC","name":"Wells Fargo & Co.","market":"NYSE","ratio":"5:1"},{"ticker":"WMT","name":"Walmart Inc.","market":"NYSE","ratio":"18:1"},{"ticker":"XLB","name":"The Materials Select Sector SPDR Fund","market":"NYSE Arca","ratio":"18:1"},{"ticker":"XLC","name":"The Communication Services Select Sector SPDR Fund","market":"NYSE Arca","ratio":"19:1"},{"ticker":"XLE","name":"ENERGY SELECT SECTOR SPDR FUND","market":"NYSE Arca","ratio":"2:1"},{"ticker":"XLF","name":"FINANCIAL SELECT SECTOR SPDR FUND","market":"NYSE Arca","ratio":"2:1"},{"ticker":"XLI","name":"The Industrial Select Sector SPDR Fund","market":"NYSE Arca","ratio":"28:1"},{"ticker":"XLK","name":"The Technology Select Sector SPDR Fund","market":"NYSE Arca","ratio":"46:1"},{"ticker":"XLP","name":"The Consumer Staples Select Sector SPDR Fund","market":"NYSE Arca","ratio":"16:1"},{"ticker":"XLRE","name":"The Real Estate Select Sector SPDR Fund","market":"NYSE Arca","ratio":"9:1"},{"ticker":"XLU","name":"First Trust NASDAQ Cybersecurity","market":"NASDAQ","ratio":"10:1"},{"ticker":"XLU","name":"Utilities Select Sector SPDR Fund","market":"NYSE Arca","ratio":"15:1"},{"ticker":"XLV","name":"The Health Care Select Sector SPDR Fund","market":"NYSE Arca","ratio":"29:1"},{"ticker":"XLY","name":"The Consumer Discretionary Select Sector SPDR Fund","market":"NYSE Arca","ratio":"43:1"},{"ticker":"XME","name":"State Street SPDR S&P Metals & Mining ETF","market":"NYSE ARCA","ratio":"30:1"},{"ticker":"XOM","name":"Exxon Mobil Corporation","market":"NYSE","ratio":"10:1"},{"ticker":"XP","name":"XP Inc","market":"NASDAQ","ratio":"4:1"},{"ticker":"XPEV","name":"XPENG INC","market":"New York","ratio":"4:1"},{"ticker":"XROX","name":"Xerox Holding Corporation","market":"NYSE","ratio":"1:1"},{"ticker":"XYZ","name":"Square Inc.","market":"NYSE","ratio":"20:1"},{"ticker":"YELP","name":"Yelp Inc.","market":"NYSE","ratio":"2:1"},{"ticker":"YZCA","name":"Yanzhou Coal Mining Co. Ltd.","market":"OTC US","ratio":"2:1"},{"ticker":"ZM","name":"Zoom Video Communications Inc.","market":"NASDAQ","ratio":"47:1"}];
+
+// BYMA ticker -> US ticker overrides (most are same; only list exceptions)
+const TICKER_OVERRIDES = {
+  'BRKB':'BRK.B','BA.C':'BAC','BBV':'BBVA','BNG':'BG','PKS':'PKX',
+  'TEN':'TS','TEFO':'TEF','TRVV':'TRV','TXR':'TX','WBO':'WB',
+  'NOKA':'NOK','XROX':'XRX','AOCA':'ACH','HNPIY':'HNP','TIIAY':'TI',
+  'SIEGY':'SIEGY','BAYN':'BAYRY','ADS':'ADDYY','BAS':'BASFY','BSN':'DANOY',
+  'DTEA':'DTEGY','MBG':'MBGAF','NEC1':'NIPNF','EOAN':'EONGY','PCRF':'PCRFY',
+  'ATAD':'OAOFY','HHPD':'HNHPF','LKOD':'LUKOY','NLM':'NLMK','OGZD':'OGZPY',
+  'YZCA':'YZCAY','FMCC':'FMCC','FNMA':'FNMA'
+};
+
+// Markets where we only compute implied USD (no real US-exchange price)
+const NON_US_MARKETS = ['B3','BOVESPA','FRANKFURT','XETRA','LONDON STOCK EXCHANGE','OTC','OTC US','-'];
+
+// ============================================================
+// STATE
+// ============================================================
+const DEFAULTS = {
+  market: {
+    ccl: 1467, cedearPriceARS: 38380, cedearRatio: 15, cedearTicker: 'TSLA',
+    wallbitPriceUSD: 391.71, usPrice: 391.71,
+    balanzCommission: 0.50, allariaCommission: 0.50,
+    // Wallbit 3 planes
+    wallbitCommission: 0.40,    // Classic
+    wallbitCommissionPro: 0.35, // Pro
+    wallbitCommissionMax: 0.30, // Max
+    wallbitFeeClassic: 0,       // USD/mes
+    wallbitFeePro: 9.99,
+    wallbitFeeMax: 19.99,
+    wallbitCapMax: 10,          // cap USD por trade (Max)
+    wallbitAPRClassic: 3.00,
+    wallbitAPRPro: 3.35,
+    wallbitAPRMax: 3.75,
+    iva: 21, fondeoWallbit: 4.5, bymaDerechos: 0.01,
+    balanzIntradiaBonif: 50, allariaCustodiaARS: 35
+  },
+  A: { notionalUSD: 391.71, numRT: 5, meses: 12, origenFondos: 'ars_local', idleUSD: 0 },
+  B: { notionalUSD: 391.71, numRT: 20, meses: 12, origenFondos: 'ars_local', idleUSD: 0 }
+};
+
+let state = JSON.parse(JSON.stringify(DEFAULTS));
+let chart = null;
+let cedearsCache = null;  // ARS live prices cache
+let usStocksCache = null; // US live prices cache
+
+// ============================================================
+// UTILS
+// ============================================================
+const $ = id => document.getElementById(id);
+const fmtUSD = v => isFinite(v) ? '$' + v.toFixed(2) : '--';
+const fmtARS = v => isFinite(v) ? '$' + v.toLocaleString('es-AR',{maximumFractionDigits:0}) : '--';
+const fmtPct = v => isFinite(v) ? v.toFixed(3) + '%' : '--';
+
+function parseRatio(r) {
+  // "20:1" -> 20 ; "1:3" -> 0.333 ; "1:1000" -> 0.001
+  const [a,b] = r.split(':').map(Number);
+  if (!b || !a) return null;
+  return a / b;
+}
+
+function ratioLabel(r) {
+  const v = parseRatio(r);
+  if (!v) return '--';
+  if (v >= 1) return `${v} CEDEAR(s) = 1 acción`;
+  return `1 CEDEAR = ${(1/v)} acciones`;
+}
+
+function setStatus(type, text) {
+  const dot = $('statusDot');
+  dot.className = 'dot-live ' + (type==='ok'?'dot-ok':type==='err'?'dot-err':'dot-warn');
+  $('statusText').textContent = text;
+}
+
+// ============================================================
+// API FETCHERS
+// ============================================================
+// Stooq devuelve CORS * nativo y cubre NYSE/NASDAQ (.us) y BYMA (.ar)
+// Formato CSV: Symbol,Date,Time,Open,High,Low,Close,Volume
+async function fetchStooq(symbol) {
+  try {
+    const url = `https://stooq.com/q/l/?s=${symbol.toLowerCase()}&f=sd2t2ohlcv&h&e=csv`;
+    const r = await fetch(url, { cache: 'no-store', mode: 'cors' });
+    if (!r.ok) return null;
+    const csv = await r.text();
+    const lines = csv.trim().split('\n');
+    if (lines.length < 2) return null;
+    const cols = lines[1].split(',');
+    // cols: Symbol, Date, Time, Open, High, Low, Close, Volume
+    const close = parseFloat(cols[6]);
+    if (!close || isNaN(close) || cols[6].toUpperCase().includes('N/D')) return null;
+    return { value: close, date: cols[1], time: cols[2] };
+  } catch(e) { console.warn('stooq fail', symbol, e); return null; }
+}
+
+// CORS proxies para endpoints sin CORS
+function proxyUrl(u) {
+  return [
+    u,
+    'https://corsproxy.io/?' + encodeURIComponent(u),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u),
+  ];
+}
+
+async function tryFetchJSON(urls) {
+  for (const u of urls) {
+    try {
+      const r = await fetch(u, { cache: 'no-store' });
+      if (!r.ok) continue;
+      const txt = await r.text();
+      try { return JSON.parse(txt); } catch(e) { continue; }
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+async function fetchCCL() {
+  // 1) dolarapi directo (tiene CORS)
+  let d = await tryFetchJSON(['https://dolarapi.com/v1/dolares/contadoconliqui']);
+  if (d && (d.venta || d.compra)) return { value: d.venta || d.compra, src: 'dolarapi', time: d.fechaActualizacion };
+  // 2) criptoya directo (tiene CORS)
+  d = await tryFetchJSON(['https://criptoya.com/api/dolar']);
+  if (d && d.ccl && d.ccl.al30 && d.ccl.al30['24hs']) return { value: d.ccl.al30['24hs'].price, src: 'criptoya', time: null };
+  // 3) proxies
+  d = await tryFetchJSON(proxyUrl('https://dolarapi.com/v1/dolares/contadoconliqui'));
+  if (d && (d.venta || d.compra)) return { value: d.venta || d.compra, src: 'dolarapi+proxy', time: d.fechaActualizacion };
+  return null;
+}
+
+async function fetchCedearPriceARS(bymaTicker) {
+  // Stooq usa ticker .AR para BYMA
+  // Algunos CEDEARs con "." (BA.C, BRKB) necesitan mapeo especial - usar el BYMA original
+  const variants = [
+    bymaTicker,
+    bymaTicker.replace('.',''),  // BA.C -> BAC
+    bymaTicker.replace('.','-'), // BA.C -> BA-C
+  ];
+  for (const v of variants) {
+    const r = await fetchStooq(v.toLowerCase() + '.ar');
+    if (r && r.value > 0) return { value: r.value, src: `stooq ${v}.AR`, time: r.date+' '+r.time };
+  }
+  // Fallback data912 vía proxy
+  const d = await tryFetchJSON(proxyUrl('https://data912.com/live/arg_cedears'));
+  if (Array.isArray(d)) {
+    const e = d.find(x => (x.symbol||x.ticker||'').toUpperCase() === bymaTicker.toUpperCase());
+    if (e) {
+      const p = e.c ?? e.close ?? e.price ?? e.last;
+      if (p) return { value: p, src: 'data912', time: null };
+    }
+  }
+  return null;
+}
+
+async function fetchUSPrice(usTicker) {
+  const variants = [
+    usTicker,
+    usTicker.replace('.',''),  // BRK.B -> BRKB
+    usTicker.replace('.','-'), // BRK.B -> BRK-B
+  ];
+  for (const v of variants) {
+    const r = await fetchStooq(v.toLowerCase() + '.us');
+    if (r && r.value > 0) return { value: r.value, src: `stooq ${v}.US`, time: r.date+' '+r.time };
+  }
+  // Fallback data912
+  const d = await tryFetchJSON(proxyUrl('https://data912.com/live/usa_stocks'));
+  if (Array.isArray(d)) {
+    const e = d.find(x => (x.symbol||x.ticker||'').toUpperCase() === usTicker.toUpperCase());
+    if (e) {
+      const p = e.c ?? e.close ?? e.price ?? e.last;
+      if (p) return { value: p, src: 'data912', time: null };
+    }
+  }
+  return null;
+}
+
+// ============================================================
+// COMPUTE
+// ============================================================
+function computeBalanz(market, scen, style) {
+  const isIntra = style === 'intradia';
+  const bonif = isIntra ? (1 - market.balanzIntradiaBonif/100) : 1;
+  const commEff = market.balanzCommission * bonif * (1 + market.iva/100);
+  const perSidePct = commEff + market.bymaDerechos;
+  const perRTPct = 2 * perSidePct;
+  const tradingCost = scen.numRT * (perRTPct/100) * scen.notionalUSD;
+  return {
+    id: isIntra?'balanz_intra':'balanz_swing',
+    label: 'Balanz · ' + (isIntra?'Intradía':'Swing'),
+    perRTPct, tradingCost, otherCost: 0,
+    totalCost: tradingCost, totalPct: (tradingCost/scen.notionalUSD)*100 / Math.max(scen.numRT,1)
+  };
+}
+
+function computeAllaria(market, scen) {
+  const commEff = market.allariaCommission * (1 + market.iva/100);
+  const perSidePct = commEff + market.bymaDerechos;
+  const perRTPct = 2 * perSidePct;
+  const tradingCost = scen.numRT * (perRTPct/100) * scen.notionalUSD;
+  // Custody: $ARS/month * (1+IVA) * months, converted to USD using CCL
+  const custodiaARS = market.allariaCustodiaARS * (1 + market.iva/100) * scen.meses;
+  const custodiaUSD = custodiaARS / market.ccl;
+  return {
+    id: 'allaria', label: 'Allaria · Autogestión',
+    perRTPct, tradingCost, otherCost: custodiaUSD, otherLabel: 'Custodia',
+    totalCost: tradingCost + custodiaUSD, totalPct: ((tradingCost+custodiaUSD)/scen.notionalUSD)*100 / Math.max(scen.numRT,1)
+  };
+}
+
+function computeWallbit(market, scen, plan) {
+  plan = plan || 'classic';
+  const commPct = plan==='pro' ? market.wallbitCommissionPro
+                 : plan==='max' ? market.wallbitCommissionMax
+                 : market.wallbitCommission;
+  const feeMonthly = plan==='pro' ? market.wallbitFeePro
+                    : plan==='max' ? market.wallbitFeeMax
+                    : market.wallbitFeeClassic;
+  const cap = plan==='max' ? (market.wallbitCapMax || Infinity) : Infinity;
+  const apr = plan==='pro' ? market.wallbitAPRPro
+             : plan==='max' ? market.wallbitAPRMax
+             : market.wallbitAPRClassic;
+
+  // Per-side cost with cap
+  const perSideRaw = (commPct/100) * scen.notionalUSD;
+  const perSide = Math.min(perSideRaw, cap);
+  const perRTPct = (2*perSide/scen.notionalUSD)*100;
+  const tradingCost = scen.numRT * 2 * perSide;
+
+  // Subscription over horizon
+  const subscription = feeMonthly * scen.meses;
+
+  // Fondeo fee
+  const fondeoApplies = scen.origenFondos === 'ars_local' || scen.origenFondos === 'usd_local';
+  const fondeoCost = fondeoApplies ? scen.notionalUSD * market.fondeoWallbit / (100 - market.fondeoWallbit) : 0;
+
+  // APR benefit on idle balance (negative cost)
+  const idle = scen.idleUSD || 0;
+  const aprBenefit = idle * (apr/100) * (scen.meses/12);
+
+  const otherCost = subscription + fondeoCost - aprBenefit;
+  const labelParts = [];
+  if (subscription > 0.01) labelParts.push(`susc $${subscription.toFixed(2)}`);
+  if (fondeoCost > 0.01) labelParts.push('fondeo');
+  if (aprBenefit > 0.01) labelParts.push(`−$${aprBenefit.toFixed(2)} APR`);
+
+  const planLabel = plan==='classic'?'Classic' : plan==='pro'?'Pro' : 'Max';
+  return {
+    id: 'wallbit_'+plan,
+    label: `Wallbit · ${planLabel}`,
+    perRTPct, tradingCost,
+    otherCost,
+    otherLabel: labelParts.join(' + '),
+    totalCost: tradingCost + otherCost,
+    totalPct: ((tradingCost+otherCost)/scen.notionalUSD)*100 / Math.max(scen.numRT,1)
+  };
+}
+
+function computeAll(scen) {
+  return [
+    computeBalanz(state.market, scen, 'swing'),
+    computeBalanz(state.market, scen, 'intradia'),
+    computeAllaria(state.market, scen),
+    computeWallbit(state.market, scen, 'classic'),
+    computeWallbit(state.market, scen, 'pro'),
+    computeWallbit(state.market, scen, 'max'),
+  ].sort((a,b) => a.totalCost - b.totalCost);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderResults(scenKey) {
+  const scen = state[scenKey];
+  const rows = computeAll(scen);
+  const best = rows[0];
+  const worst = rows[rows.length-1];
+  const saving = worst.totalCost - best.totalCost;
+  const savingPct = saving / (scen.numRT * scen.notionalUSD) * 100;
+
+  let html = `
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-xs text-slate-500 uppercase border-b border-slate-200">
+        <tr>
+          <th class="text-left py-2 pr-2">Broker</th>
+          <th class="text-right py-2 px-2">Cost/RT %</th>
+          <th class="text-right py-2 px-2">Trading USD</th>
+          <th class="text-right py-2 px-2">Otros USD</th>
+          <th class="text-right py-2 pl-2">Total USD</th>
+        </tr>
+      </thead><tbody>`;
+  rows.forEach((r,i) => {
+    const highlight = i===0 ? 'bg-emerald-50 font-semibold' : i===rows.length-1 ? 'text-slate-400' : '';
+    const tag = i===0 ? '<span class="badge bg-emerald-100 text-emerald-700">MEJOR</span>' :
+                i===rows.length-1 ? '<span class="badge bg-rose-100 text-rose-700">PEOR</span>' : '';
+    html += `<tr class="${highlight} border-b border-slate-100">
+      <td class="py-2 pr-2">${r.label} ${tag}</td>
+      <td class="text-right py-2 px-2 num">${r.perRTPct.toFixed(3)}%</td>
+      <td class="text-right py-2 px-2 num">${fmtUSD(r.tradingCost)}</td>
+      <td class="text-right py-2 px-2 num">${r.otherCost>0.01?fmtUSD(r.otherCost):'--'}${r.otherLabel?` <span class="text-[10px] text-slate-400">${r.otherLabel}</span>`:''}</td>
+      <td class="text-right py-2 pl-2 num font-semibold">${fmtUSD(r.totalCost)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+    <div class="mt-3 flex items-center justify-between text-xs bg-slate-50 rounded-lg p-3">
+      <span class="text-slate-600">Ahorro vs peor: <b class="num text-emerald-700">${fmtUSD(saving)}</b> (${savingPct.toFixed(2)}% del total invertido)</span>
+      <span class="text-slate-500">Mejor: <b>${best.label}</b></span>
+    </div>`;
+  $(scenKey+'_results').innerHTML = html;
+}
+
+function renderChart() {
+  const notional = state.A.notionalUSD;
+  const origen = state.A.origenFondos;
+  const idle = state.A.idleUSD || 0;
+  const N_MAX = 30;
+  const xs = Array.from({length: N_MAX+1}, (_,i)=>i);
+  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
+  const balanzSwing = xs.map(n => computeBalanz(state.market, mkScen(n), 'swing').totalCost);
+  const balanzIntra = xs.map(n => computeBalanz(state.market, mkScen(n), 'intradia').totalCost);
+  const allaria     = xs.map(n => computeAllaria(state.market, mkScen(n)).totalCost);
+  const wbClassic   = xs.map(n => computeWallbit(state.market, mkScen(n), 'classic').totalCost);
+  const wbPro       = xs.map(n => computeWallbit(state.market, mkScen(n), 'pro').totalCost);
+  const wbMax       = xs.map(n => computeWallbit(state.market, mkScen(n), 'max').totalCost);
+
+  if (chart) chart.destroy();
+  const ctx = $('costChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: xs,
+      datasets: [
+        { label: 'Balanz swing', data: balanzSwing, borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.1)', tension:.1, pointRadius:0 },
+        { label: 'Balanz intradía', data: balanzIntra, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.1)', tension:.1, pointRadius:0 },
+        { label: 'Allaria autogestión', data: allaria, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,.1)', tension:.1, pointRadius:0 },
+        { label: 'Wallbit Classic', data: wbClassic, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.1)', tension:.1, pointRadius:0 },
+        { label: 'Wallbit Pro', data: wbPro, borderColor:'#ec4899', backgroundColor:'rgba(236,72,153,.1)', tension:.1, pointRadius:0 },
+        { label: 'Wallbit Max', data: wbMax, borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,.1)', tension:.1, pointRadius:0 },
+      ]
+    },
+    options: {
+      maintainAspectRatio:false, responsive:true,
+      plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:12 } } },
+      scales: {
+        x: { title:{display:true,text:'Round-trips', font:{size:11}} },
+        y: { title:{display:true,text:'Costo total (USD)', font:{size:11}}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+function computeBreakeven() {
+  const notional = state.A.notionalUSD;
+  const origen = state.A.origenFondos;
+  const idle = state.A.idleUSD || 0;
+  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
+  // Break-even: Balanz swing vs el MEJOR plan Wallbit (el más barato para cada N)
+  let be = null;
+  for (let n=1; n<=500; n++) {
+    const b = computeBalanz(state.market, mkScen(n), 'swing').totalCost;
+    const w = Math.min(
+      computeWallbit(state.market, mkScen(n), 'classic').totalCost,
+      computeWallbit(state.market, mkScen(n), 'pro').totalCost,
+      computeWallbit(state.market, mkScen(n), 'max').totalCost,
+    );
+    if (b >= w) { be = n; break; }
+  }
+  $('breakeven').textContent = be===null ? 'Wallbit siempre más caro' : `${be} RT/año`;
+}
+
+function renderReco() {
+  const A = computeAll(state.A)[0];
+  const B = computeAll(state.B)[0];
+  const html = `
+    <div class="space-y-3">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+        <p class="text-xs text-emerald-700 font-semibold uppercase mb-1">Escenario A · ${state.A.numRT} RT</p>
+        <p class="text-sm font-bold text-emerald-900">${A.label}</p>
+        <p class="text-xs text-emerald-700 num">${fmtUSD(A.totalCost)} total</p>
+      </div>
+      <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+        <p class="text-xs text-indigo-700 font-semibold uppercase mb-1">Escenario B · ${state.B.numRT} RT</p>
+        <p class="text-sm font-bold text-indigo-900">${B.label}</p>
+        <p class="text-xs text-indigo-700 num">${fmtUSD(B.totalCost)} total</p>
+      </div>
+    </div>`;
+  $('reco').innerHTML = html;
+}
+
+function renderImplied() {
+  const r = parseRatio(state.market.cedearRatio+':1'.slice(0,0) || state.market._ratioStr || '1:1');
+  // Use stored ratio string
+  const rStr = $('ratioDisplay').value || '1:1';
+  const ratio = parseRatio(rStr) || 1;
+  const implied = (ratio * state.market.cedearPriceARS) / state.market.ccl;
+  const us = state.market.usPrice;
+  const premium = us>0 ? ((implied - us)/us) * 100 : 0;
+  $('impliedUSD').value = fmtUSD(implied);
+  const premEl = $('premium');
+  if (us > 0) {
+    const sign = premium >= 0 ? '+' : '';
+    premEl.value = `${sign}${premium.toFixed(3)}%`;
+    premEl.className = `w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-md num font-semibold ${premium>=0?'text-emerald-700':'text-rose-700'}`;
+  } else {
+    premEl.value = '--';
+    premEl.className = 'w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-md num font-semibold text-slate-400';
+  }
+}
+
+function renderPostulado() {
+  const notional = state.A.notionalUSD;
+  const origen = state.A.origenFondos;
+  const idle = state.A.idleUSD || 0;
+  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
+
+  // Break-even por plan: Balanz swing vs cada Wallbit plan
+  const plans = ['classic','pro','max'];
+  const planNames = { classic:'Classic', pro:'Pro', max:'Max' };
+  const planColors = { classic:'text-rose-700', pro:'text-pink-700', max:'text-violet-700' };
+  const results = {};
+  plans.forEach(p => {
+    let beSwing = null, beIntra = null;
+    for (let n=1; n<=500; n++) {
+      const b_swing = computeBalanz(state.market, mkScen(n), 'swing').totalCost;
+      const b_intra = computeBalanz(state.market, mkScen(n), 'intradia').totalCost;
+      const w = computeWallbit(state.market, mkScen(n), p).totalCost;
+      if (beSwing===null && w <= b_swing) beSwing = n;
+      if (beIntra===null && w <= b_intra) beIntra = n;
+      if (beSwing!==null && beIntra!==null) break;
+    }
+    results[p] = { beSwing, beIntra };
+  });
+
+  // Render break-even list
+  let html = '';
+  plans.forEach(p => {
+    const r = results[p];
+    html += `<div class="flex items-center justify-between">
+      <span class="font-semibold ${planColors[p]}">Wallbit ${planNames[p]}</span>
+      <span class="text-slate-500">vs swing: <b class="text-slate-900">${r.beSwing===null?'nunca':r.beSwing+' RT'}</b></span>
+      <span class="text-slate-500">vs intradía: <b class="text-slate-900">${r.beIntra===null?'nunca':r.beIntra+' RT'}</b></span>
+    </div>`;
+  });
+  $('breakevenPorPlan').innerHTML = html;
+
+  // Veredicto
+  const mejorPlan = plans.reduce((a,b) => (results[a].beSwing||999) < (results[b].beSwing||999) ? a : b);
+  const mejorBE = results[mejorPlan].beSwing;
+  const actualN = state.A.numRT;
+  let veredicto = '';
+  if (mejorBE === null) {
+    veredicto = `<b class="text-rose-700">Balanz gana siempre</b> en esta configuración. Con notional $${notional.toFixed(0)} y horizonte ${state.A.meses}mo, ningún plan de Wallbit supera a Balanz swing. Se necesita notional mayor o más RT.`;
+  } else if (actualN >= mejorBE) {
+    const ahorro = computeBalanz(state.market, mkScen(actualN), 'swing').totalCost - computeWallbit(state.market, mkScen(actualN), mejorPlan).totalCost;
+    veredicto = `<b class="text-emerald-700">Tu config (${actualN} RT) ya justifica Wallbit ${planNames[mejorPlan]}</b>. Break-even en <b>${mejorBE} RT</b>. Ahorro vs Balanz swing: <b class="num">$${ahorro.toFixed(2)}</b>.`;
+  } else {
+    veredicto = `Tu config (${actualN} RT) está <b>por debajo del break-even</b>. Para que <b>Wallbit ${planNames[mejorPlan]}</b> le gane a Balanz swing, necesitás al menos <b>${mejorBE} RT/año</b> con notional $${notional.toFixed(0)}. Probá subir el notional o la frecuencia.`;
+  }
+  $('postuladoVeredicto').innerHTML = veredicto;
+}
+
+function renderAll() {
+  renderImplied();
+  renderResults('A');
+  renderResults('B');
+  renderChart();
+  computeBreakeven();
+  renderReco();
+  renderPostulado();
+}
+
+// ============================================================
+// BINDINGS
+// ============================================================
+function bindMarketInputs() {
+  const keys = ['ccl','cedearPriceARS','wallbitPriceUSD','usPrice',
+    'balanzCommission','allariaCommission',
+    'wallbitCommission','wallbitCommissionPro','wallbitCommissionMax',
+    'wallbitFeeClassic','wallbitFeePro','wallbitFeeMax','wallbitCapMax',
+    'wallbitAPRClassic','wallbitAPRPro','wallbitAPRMax',
+    'iva','fondeoWallbit','bymaDerechos','balanzIntradiaBonif','allariaCustodiaARS'];
+  keys.forEach(k => {
+    const el = $(k);
+    if (!el) return;
+    el.value = state.market[k];
+    el.addEventListener('input', () => {
+      state.market[k] = parseFloat(el.value) || 0;
+      renderAll();
+    });
+  });
+}
+
+function bindScenInputs(scenKey) {
+  const ids = { notionalUSD:'_notionalUSD', numRT:'_numRT', meses:'_meses', origenFondos:'_origenFondos', idleUSD:'_idleUSD' };
+  Object.entries(ids).forEach(([k, suffix]) => {
+    const el = $(scenKey+suffix);
+    if (!el) return;
+    el.value = state[scenKey][k];
+    el.addEventListener('input', () => {
+      state[scenKey][k] = el.type==='number' ? (parseFloat(el.value) || 0) : el.value;
+      renderAll();
+    });
+  });
+}
+
+// ============================================================
+// CEDEAR DROPDOWN
+// ============================================================
+function renderCedearDropdown(query) {
+  const dd = $('cedearDropdown');
+  const q = (query||'').trim().toUpperCase();
+  let list = CEDEARS;
+  if (q) {
+    list = CEDEARS.filter(c =>
+      c.ticker.toUpperCase().includes(q) ||
+      c.name.toUpperCase().includes(q)
+    );
+  }
+  list = list.slice(0, 50);
+  if (list.length === 0) {
+    dd.innerHTML = `<div class="p-3 text-sm text-slate-400">Sin resultados</div>`;
+  } else {
+    dd.innerHTML = list.map(c =>
+      `<div class="cedear-item px-3 py-2 hover:bg-indigo-50 cursor-pointer border-b border-slate-100 flex items-center justify-between"
+             data-ticker="${c.ticker}" data-ratio="${c.ratio}" data-market="${c.market}" data-name="${c.name.replace(/"/g,'&quot;')}">
+         <div>
+           <span class="font-semibold text-slate-900">${c.ticker}</span>
+           <span class="text-xs text-slate-500 ml-2">${c.name}</span>
+         </div>
+         <div class="text-xs text-slate-400 flex items-center gap-2">
+           <span>${c.market}</span>
+           <span class="badge bg-slate-100 text-slate-600">${c.ratio}</span>
+         </div>
+       </div>`
+    ).join('');
+    dd.querySelectorAll('.cedear-item').forEach(el => {
+      el.addEventListener('click', () => selectCedear(el.dataset));
+    });
+  }
+  dd.classList.remove('hidden');
+}
+
+function selectCedear(data) {
+  state.market.cedearTicker = data.ticker;
+  state.market._ratioStr = data.ratio;
+  state.market._market = data.market;
+  state.market._name = data.name;
+  $('cedearSearch').value = `${data.ticker} — ${data.name}`;
+  $('ratioDisplay').value = data.ratio;
+  $('ratioNum').textContent = ratioLabel(data.ratio) + ' · ' + data.market;
+  $('cedearDropdown').classList.add('hidden');
+  // Try to fetch live prices for this ticker
+  refreshCedearPrice();
+  refreshUSPrice();
+  renderAll();
+}
+
+// ============================================================
+// LIVE DATA REFRESH
+// ============================================================
+async function refreshCCL() {
+  setStatus('warn','Fetching CCL...');
+  $('cclSrc').textContent = '...';
+  const r = await fetchCCL();
+  if (r && r.value) {
+    state.market.ccl = r.value;
+    $('ccl').value = r.value;
+    $('cclSrc').textContent = r.src + ' ✓';
+    $('cclSrc').className = 'text-[10px] text-emerald-600';
+    renderAll();
+    return true;
+  } else {
+    $('cclSrc').textContent = 'offline';
+    $('cclSrc').className = 'text-[10px] text-rose-500';
+    return false;
+  }
+}
+
+async function refreshCedearPrice() {
+  const ticker = state.market.cedearTicker;
+  if (!ticker) return;
+  const srcEl = $('cedearPriceSrc');
+  srcEl.textContent = '...';
+  srcEl.className = 'text-[10px] text-slate-400';
+  const r = await fetchCedearPriceARS(ticker);
+  if (r && r.value) {
+    state.market.cedearPriceARS = r.value;
+    $('cedearPriceARS').value = r.value;
+    srcEl.textContent = r.src + ' ✓';
+    srcEl.className = 'text-[10px] text-emerald-600';
+  } else {
+    srcEl.textContent = `no data (${ticker})`;
+    srcEl.className = 'text-[10px] text-rose-500';
+  }
+  renderAll();
+}
+
+async function refreshUSPrice() {
+  const byma = state.market.cedearTicker;
+  if (!byma) return;
+  const market = state.market._market || '';
+  const isNonUS = NON_US_MARKETS.includes(market);
+  const srcEl = $('usPriceSrc');
+  if (isNonUS) {
+    srcEl.textContent = `Mercado ${market} (sin NYSE/NASDAQ)`;
+    srcEl.className = 'text-[10px] text-amber-600';
+    return;
+  }
+  const usTicker = TICKER_OVERRIDES[byma] || byma;
+  srcEl.textContent = '...';
+  srcEl.className = 'text-[10px] text-slate-400';
+  const r = await fetchUSPrice(usTicker);
+  if (r && r.value) {
+    state.market.usPrice = r.value;
+    state.market.wallbitPriceUSD = r.value;
+    $('usPrice').value = r.value;
+    $('wallbitPriceUSD').value = r.value;
+    srcEl.textContent = r.src + ' ✓';
+    srcEl.className = 'text-[10px] text-emerald-600';
+  } else {
+    srcEl.textContent = `no data (${usTicker})`;
+    srcEl.className = 'text-[10px] text-rose-500';
+  }
+  renderAll();
+}
+
+async function refreshAll() {
+  setStatus('warn','Actualizando...');
+  const results = await Promise.allSettled([
+    refreshCCL(),
+    refreshCedearPrice(),
+    refreshUSPrice(),
+  ]);
+  const ok = results.filter(r=>r.status==='fulfilled' && r.value!==false).length;
+  if (ok === 3) setStatus('ok', `Actualizado · ${new Date().toLocaleTimeString('es-AR')}`);
+  else setStatus('warn', `Parcial (${ok}/3) · ${new Date().toLocaleTimeString('es-AR')}`);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  bindMarketInputs();
+  bindScenInputs('A');
+  bindScenInputs('B');
+
+  // Initial CEDEAR = TSLA
+  const initial = CEDEARS.find(c => c.ticker === 'TSLA') || CEDEARS[0];
+  selectCedear({ ticker: initial.ticker, name: initial.name, market: initial.market, ratio: initial.ratio });
+
+  // Dropdown behaviors
+  const search = $('cedearSearch');
+  search.addEventListener('focus', () => renderCedearDropdown(search.value));
+  search.addEventListener('input', () => renderCedearDropdown(search.value));
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#cedearSearch') && !e.target.closest('#cedearDropdown')) {
+      $('cedearDropdown').classList.add('hidden');
+    }
+  });
+
+  // Buttons
+  $('btnRefresh').addEventListener('click', refreshAll);
+  $('btnFetchCedear').addEventListener('click', refreshCedearPrice);
+  $('btnFetchUS').addEventListener('click', refreshUSPrice);
+  $('btnReset').addEventListener('click', () => {
+    if (confirm('¿Resetear todos los valores?')) {
+      state = JSON.parse(JSON.stringify(DEFAULTS));
+      bindMarketInputs(); bindScenInputs('A'); bindScenInputs('B');
+      const t = CEDEARS.find(c=>c.ticker==='TSLA');
+      selectCedear({ ticker:t.ticker, name:t.name, market:t.market, ratio:t.ratio });
+    }
+  });
+
+  renderAll();
+  // Auto-fetch on load
+  refreshAll();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
