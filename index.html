@@ -204,7 +204,6 @@
     <div class="px-5 pb-5">
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
         <div><label class="block text-xs text-slate-500 mb-1">Balanz comisión %</label><input id="balanzCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-        <div><label class="block text-xs text-slate-500 mb-1">Balanz bonif. intradía %</label><input id="balanzIntradiaBonif" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">Allaria comisión %</label><input id="allariaCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">Allaria custodia $/mes</label><input id="allariaCustodiaARS" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">Wallbit comisión %</label><input id="wallbitCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
@@ -254,7 +253,7 @@
         </div>
       </div>
 
-      <p class="text-[11px] text-slate-400 mt-3">Balanz: 0,50% + IVA, bonif. 50% intradía, 0 custodia, USD 0,03/CEDEAR conversión. Allaria autogestión: 0,50% + IVA, $35 + IVA/mes custodia. Wallbit: 4,5% fondeo (ARS o USD desde cuenta AR) aplica a los 3 planes.</p>
+      <p class="text-[11px] text-slate-400 mt-3">Balanz: 0,50% + IVA, 0 custodia, USD 0,03/CEDEAR conversión. Allaria autogestión: 0,50% + IVA, $35 + IVA/mes custodia. Wallbit: 4,5% fondeo (ARS o USD desde cuenta AR) aplica a los 3 planes.</p>
     </div>
   </details>
 </section>
@@ -491,14 +490,6 @@
           <td class="hc-val hc-neut"><b>0,30%</b></td>
         </tr>
         <tr>
-          <td class="hc-label">Bonif. intradía (comisión)</td>
-          <td class="hc-val hc-good">50% off</td>
-          <td class="hc-val hc-hide">sin bonif</td>
-          <td class="hc-val hc-hide">N/A</td>
-          <td class="hc-val hc-hide">N/A</td>
-          <td class="hc-val hc-hide">N/A</td>
-        </tr>
-        <tr>
           <td class="hc-label">Tope por operación</td>
           <td class="hc-val hc-bad">sin tope</td>
           <td class="hc-val hc-bad">sin tope</td>
@@ -710,7 +701,7 @@ const DEFAULTS = {
     wallbitAPRPro: 3.35,
     wallbitAPRMax: 3.75,
     iva: 21, fondeoWallbit: 4.5, bymaDerechos: 0.01,
-    balanzIntradiaBonif: 50, allariaCustodiaARS: 35
+    allariaCustodiaARS: 35
   },
   A: { notionalUSD: 391.71, numRT: 5, meses: 12, origenFondos: 'ars_local', idleUSD: 0 },
   B: { notionalUSD: 391.71, numRT: 20, meses: 12, origenFondos: 'ars_local', idleUSD: 0 }
@@ -854,16 +845,14 @@ async function fetchUSPrice(usTicker) {
 // ============================================================
 // COMPUTE
 // ============================================================
-function computeBalanz(market, scen, style) {
-  const isIntra = style === 'intradia';
-  const bonif = isIntra ? (1 - market.balanzIntradiaBonif/100) : 1;
-  const commEff = market.balanzCommission * bonif * (1 + market.iva/100);
+function computeBalanz(market, scen) {
+  const commEff = market.balanzCommission * (1 + market.iva/100);
   const perSidePct = commEff + market.bymaDerechos;
   const perRTPct = 2 * perSidePct;
   const tradingCost = scen.numRT * (perRTPct/100) * scen.notionalUSD;
   return {
-    id: isIntra?'balanz_intra':'balanz_swing',
-    label: 'Balanz · ' + (isIntra?'Intradía':'Swing'),
+    id: 'balanz',
+    label: 'Balanz',
     perRTPct, tradingCost, otherCost: 0,
     totalCost: tradingCost, totalPct: (tradingCost/scen.notionalUSD)*100 / Math.max(scen.numRT,1)
   };
@@ -934,8 +923,7 @@ function computeWallbit(market, scen, plan) {
 
 function computeAll(scen) {
   return [
-    computeBalanz(state.market, scen, 'swing'),
-    computeBalanz(state.market, scen, 'intradia'),
+    computeBalanz(state.market, scen),
     computeAllaria(state.market, scen),
     computeWallbit(state.market, scen, 'classic'),
     computeWallbit(state.market, scen, 'pro'),
@@ -993,8 +981,7 @@ function renderChart() {
   const N_MAX = 30;
   const xs = Array.from({length: N_MAX+1}, (_,i)=>i);
   const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
-  const balanzSwing = xs.map(n => computeBalanz(state.market, mkScen(n), 'swing').totalCost);
-  const balanzIntra = xs.map(n => computeBalanz(state.market, mkScen(n), 'intradia').totalCost);
+  const balanz      = xs.map(n => computeBalanz(state.market, mkScen(n)).totalCost);
   const allaria     = xs.map(n => computeAllaria(state.market, mkScen(n)).totalCost);
   const wbClassic   = xs.map(n => computeWallbit(state.market, mkScen(n), 'classic').totalCost);
   const wbPro       = xs.map(n => computeWallbit(state.market, mkScen(n), 'pro').totalCost);
@@ -1007,8 +994,7 @@ function renderChart() {
     data: {
       labels: xs,
       datasets: [
-        { label: 'Balanz swing', data: balanzSwing, borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
-        { label: 'Balanz intradía', data: balanzIntra, borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
+        { label: 'Balanz', data: balanz, borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
         { label: 'Allaria autogestión', data: allaria, borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
         { label: 'Wallbit Classic', data: wbClassic, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
         { label: 'Wallbit Pro', data: wbPro, borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
@@ -1031,10 +1017,10 @@ function computeBreakeven() {
   const origen = state.A.origenFondos;
   const idle = state.A.idleUSD || 0;
   const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
-  // Break-even: Balanz swing vs el MEJOR plan Wallbit (el más barato para cada N)
+  // Break-even: Balanz vs el MEJOR plan Wallbit (el más barato para cada N)
   let be = null;
   for (let n=1; n<=500; n++) {
-    const b = computeBalanz(state.market, mkScen(n), 'swing').totalCost;
+    const b = computeBalanz(state.market, mkScen(n)).totalCost;
     const w = Math.min(
       computeWallbit(state.market, mkScen(n), 'classic').totalCost,
       computeWallbit(state.market, mkScen(n), 'pro').totalCost,
@@ -1096,16 +1082,13 @@ function renderPostulado() {
   const planColors = { classic:'text-rose-700', pro:'text-pink-700', max:'text-violet-700' };
   const results = {};
   plans.forEach(p => {
-    let beSwing = null, beIntra = null;
+    let beSwing = null;
     for (let n=1; n<=500; n++) {
-      const b_swing = computeBalanz(state.market, mkScen(n), 'swing').totalCost;
-      const b_intra = computeBalanz(state.market, mkScen(n), 'intradia').totalCost;
+      const b = computeBalanz(state.market, mkScen(n)).totalCost;
       const w = computeWallbit(state.market, mkScen(n), p).totalCost;
-      if (beSwing===null && w <= b_swing) beSwing = n;
-      if (beIntra===null && w <= b_intra) beIntra = n;
-      if (beSwing!==null && beIntra!==null) break;
+      if (w <= b) { beSwing = n; break; }
     }
-    results[p] = { beSwing, beIntra };
+    results[p] = { beSwing };
   });
 
   // Render break-even list
@@ -1114,8 +1097,7 @@ function renderPostulado() {
     const r = results[p];
     html += `<div class="flex items-center justify-between">
       <span class="font-semibold ${planColors[p]}">Wallbit ${planNames[p]}</span>
-      <span class="text-slate-500">vs swing: <b class="text-slate-900">${r.beSwing===null?'nunca':r.beSwing+' RT'}</b></span>
-      <span class="text-slate-500">vs intradía: <b class="text-slate-900">${r.beIntra===null?'nunca':r.beIntra+' RT'}</b></span>
+      <span class="text-slate-500">vs Balanz: <b class="text-slate-900">${r.beSwing===null?'nunca':r.beSwing+' RT'}</b></span>
     </div>`;
   });
   $('breakevenPorPlan').innerHTML = html;
@@ -1149,7 +1131,7 @@ function renderDashboard() {
   const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses, origenFondos: origen, idleUSD: idle });
 
   const strategies = [
-    { id:'balanzSwing', label:'Balanz',               color:'#7c3aed', fn:(s)=>computeBalanz(state.market, s, 'swing'),    eligible:true },
+    { id:'balanz',      label:'Balanz',               color:'#7c3aed', fn:(s)=>computeBalanz(state.market, s),             eligible:true },
     { id:'allaria',     label:'Allaria · Autogestión', color:'#0ea5e9', fn:(s)=>computeAllaria(state.market, s),            eligible:true },
     { id:'wbClassic',   label:'Wallbit · Classic',    color:'#3b82f6', fn:(s)=>computeWallbit(state.market, s, 'classic'), eligible:true },
     { id:'wbPro',       label:'Wallbit · Pro',        color:'#1d4ed8', fn:(s)=>computeWallbit(state.market, s, 'pro'),     eligible:true },
@@ -1235,7 +1217,7 @@ function renderDashboard() {
       <li><b>A 100 RT/año:</b> gana <b>${at100.name}</b> ($${at100.cost.toFixed(2)})</li>
       <li>Primer cambio de ganador: <b>${zones.length > 1 ? `RT ${zones[1].from}` : 'nunca cambia'}</b></li>
     </ul>
-    <p class="text-[11px] text-slate-500 mt-2">Escenario para usuario común: buy &amp; hold o trading de baja frecuencia (no intradía).</p>`;
+    <p class="text-[11px] text-slate-500 mt-2">Escenario para usuario minorista común: buy &amp; hold o trading de baja frecuencia.</p>`;
   $('dashInsight').innerHTML = insightHtml;
 
   // Chart dedicado (0..250 RT smooth curve)
@@ -1392,7 +1374,7 @@ function bindMarketInputs() {
     'wallbitCommission','wallbitCommissionPro','wallbitCommissionMax',
     'wallbitFeeClassic','wallbitFeePro','wallbitFeeMax','wallbitCapMax',
     'wallbitAPRClassic','wallbitAPRPro','wallbitAPRMax',
-    'iva','fondeoWallbit','bymaDerechos','balanzIntradiaBonif','allariaCustodiaARS'];
+    'iva','fondeoWallbit','bymaDerechos','allariaCustodiaARS'];
   keys.forEach(k => {
     const el = $(k);
     if (!el) return;
