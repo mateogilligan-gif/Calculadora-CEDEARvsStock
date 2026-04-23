@@ -178,9 +178,9 @@
       <div>
         <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Origen fondos</label>
         <select id="savOrigen" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
-          <option value="ars_local">ARS cuenta AR</option>
-          <option value="usd_local">USD cuenta AR</option>
+          <option value="usd_local">USD cuenta AR (SWIFT al broker)</option>
           <option value="usd_exterior">USD exterior</option>
+          <option value="ars_local">ARS cuenta AR (legacy · 4,5%)</option>
         </select>
         <p class="text-[10px] text-slate-400 mt-0.5">define si pagás fondeo</p>
       </div>
@@ -220,7 +220,7 @@
           <tbody id="savTableBody"></tbody>
         </table>
         <p class="mt-3 text-[11px] text-slate-500 leading-relaxed">
-          <b>Cómo leerlo:</b> "Costo operativo" = comisiones de compra + venta. "Susc. + fondeo" = abono mensual del plan Wallbit + fee 4.5% del fondeo (one-time). "Custodia" = el abono mensual de Allaria. El ahorro se calcula contra el broker que seleccionaste arriba.
+          <b>Cómo leerlo:</b> "Costo operativo" = comisiones de compra + venta. "Susc. + fondeo" = abono mensual del plan Wallbit + fee de fondeo one-time vía SWIFT bancario (USD 24,20 OUR fijo + 0,21% post-IVA sobre monto, desde USD 1.000). "Custodia" = el abono mensual de Allaria. El ahorro se calcula contra el broker que seleccionaste arriba.
         </p>
       </div>
     </details>
@@ -353,7 +353,31 @@
         </div>
       </div>
 
-      <p class="text-[11px] text-slate-400 mt-3">Balanz: 0,50% + IVA, 0 custodia, USD 0,03/CEDEAR conversión. Allaria autogestión: 0,50% + IVA, $35 + IVA/mes custodia. Wallbit: 4,5% fondeo (ARS o USD desde cuenta AR) aplica a los 3 planes.</p>
+      <!-- SWIFT bancario (fondeo USD AR → broker) -->
+      <div class="mt-5 pt-4 border-t border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Fondeo SWIFT bancario <span class="text-[10px] font-normal text-slate-400 normal-case">(USD cuenta AR → broker)</span></h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">OUR fijo &lt; USD 500</label>
+            <input id="swiftOurLow" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">OUR fijo ≥ USD 500</label>
+            <input id="swiftOurHigh" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Comisión banco % <span class="text-[10px] text-slate-400">(pre-IVA)</span></label>
+            <input id="swiftBankPct" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Umbral comisión USD</label>
+            <input id="swiftBankThreshold" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num">
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-2">Defaults: Santander Abr-2026. Por debajo del umbral (USD 1.000) solo pagás OUR. Arriba, OUR + % banco × monto × IVA. Ajustá según tu banco.</p>
+      </div>
+
+      <p class="text-[11px] text-slate-400 mt-3">Balanz: 0,50% + IVA, 0 custodia, USD 0,03/CEDEAR conversión. Allaria autogestión: 0,50% + IVA, $35 + IVA/mes custodia. Wallbit: fondeo vía SWIFT bancario (USD 24,20 OUR fijo + 0,175% + IVA sobre monto) desde tu cuenta USD AR. (Legacy: 4,5% gross-up si fondeás desde pesos).</p>
     </div>
   </details>
 </section>
@@ -368,9 +392,9 @@
       <div><label class="block text-xs text-slate-500 mb-1">Horizonte (meses)</label><input id="A_meses" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
       <div><label class="block text-xs text-slate-500 mb-1">Origen fondos</label>
         <select id="A_origenFondos" class="w-full px-2 py-1.5 border border-slate-300 rounded">
-          <option value="ars_local">ARS desde cuenta AR</option>
-          <option value="usd_local">USD desde cuenta AR</option>
+          <option value="usd_local">USD desde cuenta AR (SWIFT al broker)</option>
           <option value="usd_exterior">USD desde exterior</option>
+          <option value="ars_local">ARS desde cuenta AR (legacy · 4,5%)</option>
         </select>
       </div>
       <div class="col-span-2"><label class="block text-xs text-slate-500 mb-1">Capital ocioso promedio en cuenta remunerada (USD) · <span class="text-slate-400">beneficio APR Wallbit</span></label><input id="A_idleUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num" placeholder="0 = sin beneficio APR"></div>
@@ -385,9 +409,9 @@
       <div><label class="block text-xs text-slate-500 mb-1">Horizonte (meses)</label><input id="B_meses" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
       <div><label class="block text-xs text-slate-500 mb-1">Origen fondos</label>
         <select id="B_origenFondos" class="w-full px-2 py-1.5 border border-slate-300 rounded">
-          <option value="ars_local">ARS desde cuenta AR</option>
-          <option value="usd_local">USD desde cuenta AR</option>
+          <option value="usd_local">USD desde cuenta AR (SWIFT al broker)</option>
           <option value="usd_exterior">USD desde exterior</option>
+          <option value="ars_local">ARS desde cuenta AR (legacy · 4,5%)</option>
         </select>
       </div>
       <div class="col-span-2"><label class="block text-xs text-slate-500 mb-1">Capital ocioso promedio en cuenta remunerada (USD) · <span class="text-slate-400">beneficio APR Wallbit</span></label><input id="B_idleUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num" placeholder="0 = sin beneficio APR"></div>
@@ -420,7 +444,7 @@
     <div>
       <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Lógica</p>
       <p class="text-slate-700 text-[13px] leading-relaxed">
-        El 4,5% de fondeo de Wallbit es <b>one-time</b>: lo pagás una sola vez al transferir, y después podés rotar ese capital todas las veces que quieras. Balanz, en cambio, cobra comisión full en cada trade.
+        El costo de fondeo de Wallbit es <b>one-time</b>: con SWIFT desde tu cuenta USD AR pagás sólo <b>USD 24,20 + 0,21% del monto</b> (ej.: USD 1.500 → $27,38; USD 10.000 → $45). Lo pagás una vez al transferir y después rotás ese capital sin costo adicional de fondeo. Balanz, en cambio, cobra comisión full en cada trade.
         Con Wallbit <b>Max</b>, además, la comisión tiene un cap de $10/trade — así que en notional alto el costo por RT es casi fijo.
       </p>
     </div>
@@ -449,9 +473,9 @@
       <input id="dashMeses" type="number" step="1" value="12" class="w-16 px-2 py-1.5 border border-slate-300 rounded num text-right">
       <label class="text-xs text-slate-500">Origen</label>
       <select id="dashOrigen" class="px-2 py-1.5 border border-slate-300 rounded text-xs">
-        <option value="ars_local">ARS cuenta AR</option>
-        <option value="usd_local">USD cuenta AR</option>
+        <option value="usd_local">USD cuenta AR (SWIFT al broker)</option>
         <option value="usd_exterior">USD exterior</option>
+        <option value="ars_local">ARS cuenta AR (legacy · 4,5%)</option>
       </select>
     </div>
   </div>
@@ -502,6 +526,67 @@
   <div class="mt-5">
     <div style="height:300px;"><canvas id="dashChart"></canvas></div>
   </div>
+</section>
+
+<!-- ARB: CEDEAR vs STOCK EN USD (LIVE) -->
+<section class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-sm border border-indigo-500 p-5 mb-5">
+  <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
+    <div>
+      <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">¿CEDEAR caro o barato? <span class="text-[10px] font-normal text-slate-400 normal-case tracking-normal">· live</span></h2>
+      <p class="text-xs text-slate-400 mt-1">Compará el precio del stock en Wall Street vs el precio implícito del CEDEAR en USD: <span class="text-slate-300">(ARS × ratio) / CCL</span>. Si el CEDEAR cotiza arriba → <span class="text-rose-400 font-semibold">prima</span>. Si cotiza abajo → <span class="text-emerald-400 font-semibold">descuento</span>.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <input id="arbSearch" type="text" placeholder="Buscar ticker (ej: TSLA, AAPL)" autocomplete="off"
+             class="w-52 px-3 py-2 border border-slate-600 bg-slate-800 text-slate-100 rounded-md text-sm focus:border-indigo-400 outline-none placeholder:text-slate-500" />
+      <button id="arbGo" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-md transition">Comparar</button>
+    </div>
+  </div>
+
+  <!-- Dropdown de sugerencias -->
+  <div id="arbDropdown" class="hidden relative">
+    <div class="absolute right-0 top-0 w-80 max-h-64 overflow-y-auto bg-slate-900 border border-slate-600 rounded-md shadow-xl z-20"></div>
+  </div>
+
+  <!-- Resultado -->
+  <div id="arbResult" class="hidden mt-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <!-- Stock USD -->
+      <div class="bg-slate-800 rounded-lg border border-slate-700 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider">Wall Street</span>
+          <span id="arbUsSrc" class="text-[9px] text-slate-500"></span>
+        </div>
+        <div id="arbUsPrice" class="text-2xl font-bold text-sky-300 num mt-1">—</div>
+        <div id="arbUsTicker" class="text-[11px] text-slate-400 mt-0.5">—</div>
+      </div>
+
+      <!-- CEDEAR implícito -->
+      <div class="bg-slate-800 rounded-lg border border-slate-700 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider">CEDEAR implícito</span>
+          <span id="arbCedSrc" class="text-[9px] text-slate-500"></span>
+        </div>
+        <div id="arbCedImplied" class="text-2xl font-bold text-violet-300 num mt-1">—</div>
+        <div id="arbCedFormula" class="text-[11px] text-slate-400 mt-0.5">—</div>
+      </div>
+
+      <!-- Prima/Descuento -->
+      <div id="arbSpreadCard" class="rounded-lg border p-4 transition">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] uppercase tracking-wider" id="arbSpreadLabel">Diferencia</span>
+          <span class="text-[9px] text-slate-500" id="arbTime"></span>
+        </div>
+        <div id="arbSpreadPct" class="text-2xl font-bold num mt-1">—</div>
+        <div id="arbSpreadAbs" class="text-[11px] mt-0.5">—</div>
+      </div>
+    </div>
+
+    <!-- Interpretación -->
+    <div id="arbInsight" class="mt-3 p-3 rounded-lg bg-slate-800/60 border border-slate-700 text-xs text-slate-300">—</div>
+  </div>
+
+  <!-- Estado / errores -->
+  <div id="arbStatus" class="hidden mt-3 text-xs text-slate-400">—</div>
 </section>
 
 <!-- SECTION 8: TABLA DE COSTOS OCULTOS -->
@@ -668,7 +753,15 @@
 
         <tr><td class="row-cat" colspan="6">Ingreso / salida de fondos</td></tr>
         <tr>
-          <td class="hc-label">Fondeo desde cuenta AR <span class="text-[9px] text-slate-400">(one-time)</span></td>
+          <td class="hc-label">Fondeo desde USD cuenta AR vía SWIFT <span class="text-[9px] text-slate-400">(one-time · recomendado)</span></td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-good">N/A</td>
+          <td class="hc-val hc-neut">OUR 24,20 + 0,21%</td>
+          <td class="hc-val hc-neut">OUR 24,20 + 0,21%</td>
+          <td class="hc-val hc-neut">OUR 24,20 + 0,21%</td>
+        </tr>
+        <tr>
+          <td class="hc-label">Fondeo desde ARS cuenta AR <span class="text-[9px] text-slate-400">(legacy · one-time)</span></td>
           <td class="hc-val hc-good">gratis</td>
           <td class="hc-val hc-good">gratis</td>
           <td class="hc-val hc-bad">4,5%</td>
@@ -801,10 +894,15 @@ const DEFAULTS = {
     wallbitAPRPro: 3.35,
     wallbitAPRMax: 3.75,
     iva: 21, fondeoWallbit: 4.5, bymaDerechos: 0.01,
-    allariaCustodiaARS: 35
+    allariaCustodiaARS: 35,
+    // SWIFT bancario (transferencia USD cuenta AR → broker, desde Apr-2026)
+    swiftOurLow: 12.10,      // OUR fijo para monto < USD 500
+    swiftOurHigh: 24.20,     // OUR fijo para monto >= USD 500
+    swiftBankPct: 0.175,     // % comisión banco pre-IVA sobre monto
+    swiftBankThreshold: 1000 // debajo de este umbral, % comisión banco = 0
   },
-  A: { notionalUSD: 391.71, numRT: 5, meses: 12, origenFondos: 'ars_local', idleUSD: 0 },
-  B: { notionalUSD: 391.71, numRT: 20, meses: 12, origenFondos: 'ars_local', idleUSD: 0 }
+  A: { notionalUSD: 391.71, numRT: 5, meses: 12, origenFondos: 'usd_local', idleUSD: 0 },
+  B: { notionalUSD: 391.71, numRT: 20, meses: 12, origenFondos: 'usd_local', idleUSD: 0 }
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULTS));
@@ -962,6 +1060,18 @@ async function fetchUSPrice(usTicker) {
 // ============================================================
 // COMPUTE
 // ============================================================
+// Costo SWIFT bancario (AR → broker) para origen "USD cuenta AR"
+// Modelo Santander Abr-2026 (configurable vía inputs):
+//   OUR fijo: 12,10 si <500 | 24,20 si >=500
+//   Comisión banco: 0 si <threshold | bankPct % con IVA sobre monto total
+function computeSwiftCost(amountUSD, market) {
+  if (!isFinite(amountUSD) || amountUSD <= 0) return 0;
+  const our = amountUSD < 500 ? market.swiftOurLow : market.swiftOurHigh;
+  const bankPct = amountUSD < market.swiftBankThreshold ? 0 : market.swiftBankPct;
+  const bankFee = amountUSD * (bankPct/100) * (1 + market.iva/100);
+  return our + bankFee;
+}
+
 function computeBalanz(market, scen) {
   const commEff = market.balanzCommission * (1 + market.iva/100);
   const perSidePct = commEff + market.bymaDerechos;
@@ -1013,8 +1123,15 @@ function computeWallbit(market, scen, plan) {
   const subscription = feeMonthly * scen.meses;
 
   // Fondeo fee
-  const fondeoApplies = scen.origenFondos === 'ars_local' || scen.origenFondos === 'usd_local';
-  const fondeoCost = fondeoApplies ? scen.notionalUSD * market.fondeoWallbit / (100 - market.fondeoWallbit) : 0;
+  //   - ars_local   : Wallbit cobra 4,5% gross-up (aplica al fondeo con pesos)
+  //   - usd_local   : SWIFT bancario desde cuenta USD AR (OUR fijo + % banco con IVA, Wallbit 0)
+  //   - usd_exterior: cero (ya estás afuera)
+  let fondeoCost = 0;
+  if (scen.origenFondos === 'ars_local') {
+    fondeoCost = scen.notionalUSD * market.fondeoWallbit / (100 - market.fondeoWallbit);
+  } else if (scen.origenFondos === 'usd_local') {
+    fondeoCost = computeSwiftCost(scen.notionalUSD, market);
+  }
 
   // APR benefit on idle balance (negative cost)
   const idle = scen.idleUSD || 0;
@@ -1242,7 +1359,7 @@ let dashChart = null;
 function renderDashboard() {
   const notional = parseFloat($('dashNotional').value) || 1500;
   const meses    = parseFloat($('dashMeses').value) || 12;
-  const origen   = $('dashOrigen').value || 'ars_local';
+  const origen   = $('dashOrigen').value || 'usd_local';
   const idle     = 0;
   const Ns = [1, 5, 10, 25, 50, 100, 250];
   const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses, origenFondos: origen, idleUSD: idle });
@@ -1328,7 +1445,7 @@ function renderDashboard() {
   };
   const at10 = bestAtN(10), at100 = bestAtN(100);
   const insightHtml = `
-    <p class="mb-2">Con <b class="text-indigo-900">$${notional.toFixed(0)}</b>, origen <b>${origen==='ars_local'?'ARS cuenta AR':origen==='usd_local'?'USD cuenta AR':'USD exterior'}</b>:</p>
+    <p class="mb-2">Con <b class="text-indigo-900">$${notional.toFixed(0)}</b>, origen <b>${origen==='ars_local'?'ARS cuenta AR':origen==='usd_local'?'USD AR vía SWIFT':'USD exterior'}</b>:</p>
     <ul class="space-y-1 list-disc list-inside">
       <li><b>Hasta ~10 RT/año:</b> gana <b>${at10.name}</b> ($${at10.cost.toFixed(2)})</li>
       <li><b>A 100 RT/año:</b> gana <b>${at100.name}</b> ($${at100.cost.toFixed(2)})</li>
@@ -1382,7 +1499,7 @@ function renderSavings() {
   const usd    = parseFloat($('savUsd').value)    || 0;
   const trades = parseFloat($('savTrades').value) || 0;
   const meses  = parseFloat($('savMeses').value)  || 12;
-  const origen = $('savOrigen').value || 'ars_local';
+  const origen = $('savOrigen').value || 'usd_local';
   const basePlan = $('savPlan').value || 'balanz';
 
   const scen = { notionalUSD: usd, numRT: trades, meses, origenFondos: origen, idleUSD: 0 };
@@ -1401,8 +1518,12 @@ function renderSavings() {
   const custodiaUSD = custodiaARS / state.market.ccl;
   breakdowns.allaria.extra = { susc:0, custodia:custodiaUSD, fondeo:0, apr:0 };
 
-  const fondeoApplies = origen === 'ars_local' || origen === 'usd_local';
-  const fondeoFee = fondeoApplies ? usd * state.market.fondeoWallbit / (100 - state.market.fondeoWallbit) : 0;
+  let fondeoFee = 0;
+  if (origen === 'ars_local') {
+    fondeoFee = usd * state.market.fondeoWallbit / (100 - state.market.fondeoWallbit);
+  } else if (origen === 'usd_local') {
+    fondeoFee = computeSwiftCost(usd, state.market);
+  }
   // No idle in this simulator (idle es 0) → APR benefit = 0
   ['wbClassic','wbPro','wbMax'].forEach(k => {
     const plan = k === 'wbClassic' ? 'classic' : k === 'wbPro' ? 'pro' : 'max';
@@ -1431,7 +1552,7 @@ function renderSavings() {
     : `<span class="text-rose-700">pagás de más</span>`;
 
   // Headline card (HERO)
-  const originTxt = origen==='ars_local'?'ARS cuenta AR' : origen==='usd_local'?'USD cuenta AR' : 'USD exterior';
+  const originTxt = origen==='ars_local'?'ARS cuenta AR' : origen==='usd_local'?'USD AR vía SWIFT' : 'USD exterior';
   const winsColor = savings > 0 ? 'text-emerald-600' : 'text-rose-600';
   const headlineMsg = savings > 0
     ? `Te ahorrás con <span style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</span>`
@@ -1491,7 +1612,8 @@ function bindMarketInputs() {
     'wallbitCommission','wallbitCommissionPro','wallbitCommissionMax',
     'wallbitFeeClassic','wallbitFeePro','wallbitFeeMax','wallbitCapMax',
     'wallbitAPRClassic','wallbitAPRPro','wallbitAPRMax',
-    'iva','fondeoWallbit','bymaDerechos','allariaCustodiaARS'];
+    'iva','fondeoWallbit','bymaDerechos','allariaCustodiaARS',
+    'swiftOurLow','swiftOurHigh','swiftBankPct','swiftBankThreshold'];
   keys.forEach(k => {
     const el = $(k);
     if (!el) return;
@@ -1696,9 +1818,189 @@ function init() {
     }
   });
 
+  // Comparador CEDEAR vs Stock (live)
+  bindArbCompare();
+
   renderAll();
   // Auto-fetch on load
   refreshAll();
+}
+
+// ============================================================
+// ARB COMPARATOR: CEDEAR vs Stock en USD (live)
+// ============================================================
+function bindArbCompare() {
+  const input = $('arbSearch');
+  const dd    = $('arbDropdown');
+  const go    = $('arbGo');
+  if (!input || !go) return;
+
+  // Pre-fill con el CEDEAR seleccionado actualmente
+  if (state.market && state.market.cedearTicker) {
+    input.value = state.market.cedearTicker;
+  }
+
+  function renderArbDropdown(q) {
+    const qq = (q||'').trim().toUpperCase();
+    let list = CEDEARS;
+    if (qq) {
+      list = CEDEARS.filter(c =>
+        c.ticker.toUpperCase().startsWith(qq) ||
+        c.name.toUpperCase().includes(qq)
+      );
+    }
+    list = list.slice(0, 30);
+    const inner = dd.querySelector('div');
+    if (!list.length) { dd.classList.add('hidden'); return; }
+    inner.innerHTML = list.map(c => `
+      <div class="arb-opt flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-800 border-b border-slate-700 last:border-b-0"
+           data-ticker="${c.ticker}">
+        <div class="flex flex-col min-w-0">
+          <span class="font-semibold text-sm text-slate-100">${c.ticker}</span>
+          <span class="text-[10px] text-slate-400 truncate">${c.name}</span>
+        </div>
+        <span class="text-[10px] text-slate-400 font-mono ml-2">${c.ratio}</span>
+      </div>
+    `).join('');
+    dd.classList.remove('hidden');
+    inner.querySelectorAll('.arb-opt').forEach(el => {
+      el.addEventListener('click', () => {
+        input.value = el.dataset.ticker;
+        dd.classList.add('hidden');
+        runArbCompare();
+      });
+    });
+  }
+
+  input.addEventListener('focus', () => renderArbDropdown(input.value));
+  input.addEventListener('input', () => renderArbDropdown(input.value));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); dd.classList.add('hidden'); runArbCompare(); }
+    if (e.key === 'Escape') dd.classList.add('hidden');
+  });
+  go.addEventListener('click', () => { dd.classList.add('hidden'); runArbCompare(); });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#arbSearch') && !e.target.closest('#arbDropdown')) {
+      dd.classList.add('hidden');
+    }
+  });
+}
+
+async function runArbCompare() {
+  const fmtN = (v, d=2) => isFinite(v) ? v.toLocaleString('es-AR', {maximumFractionDigits:d, minimumFractionDigits:d}) : '--';
+  const input = $('arbSearch');
+  const status = $('arbStatus');
+  const result = $('arbResult');
+  const raw = (input.value || '').trim().toUpperCase();
+  if (!raw) { status.textContent = 'Ingresá un ticker.'; status.classList.remove('hidden'); return; }
+
+  const cd = CEDEARS.find(c => c.ticker.toUpperCase() === raw);
+  if (!cd) {
+    status.textContent = `No encuentro el ticker "${raw}" en la lista de CEDEARs BYMA.`;
+    status.classList.remove('hidden');
+    result.classList.add('hidden');
+    return;
+  }
+
+  status.textContent = 'Obteniendo precios…';
+  status.classList.remove('hidden');
+  result.classList.remove('hidden');
+  $('arbUsPrice').textContent = '…';
+  $('arbCedImplied').textContent = '…';
+  $('arbSpreadPct').textContent = '…';
+  $('arbSpreadAbs').textContent = '';
+  $('arbUsSrc').textContent = '';
+  $('arbCedSrc').textContent = '';
+  $('arbUsTicker').textContent = cd.ticker + ' · ' + (cd.market||'');
+  $('arbCedFormula').textContent = `CEDEAR ${cd.ticker} · ratio ${cd.ratio}`;
+
+  const ratio = parseRatio(cd.ratio) || 1;
+
+  // Fetch en paralelo
+  const [us, ced, ccl] = await Promise.all([
+    fetchUSPrice(cd.ticker),
+    fetchCedearPriceARS(cd.ticker),
+    fetchCCL()
+  ]);
+
+  const fails = [];
+  if (!us)  fails.push('precio en Wall Street');
+  if (!ced) fails.push('precio del CEDEAR en ARS');
+  if (!ccl) fails.push('CCL');
+  if (fails.length) {
+    status.textContent = 'No pude obtener: ' + fails.join(', ') + '. Probá con otro ticker o esperá unos segundos.';
+    return;
+  }
+
+  const usdSpot    = us.value;
+  const impliedUSD = (ratio * ced.value) / ccl.value;
+  const absDiff    = impliedUSD - usdSpot;
+  const pctDiff    = (impliedUSD / usdSpot - 1) * 100;
+
+  $('arbUsPrice').textContent = 'USD ' + fmtN(usdSpot, 2);
+  $('arbCedImplied').textContent = 'USD ' + fmtN(impliedUSD, 2);
+  $('arbCedFormula').innerHTML = `ARS ${fmtN(ced.value,2)} × ${ratio} / CCL ${fmtN(ccl.value,2)}`;
+  $('arbUsSrc').textContent = us.src;
+  $('arbCedSrc').textContent = ced.src;
+
+  const card = $('arbSpreadCard');
+  const lbl  = $('arbSpreadLabel');
+  const pctEl = $('arbSpreadPct');
+  const absEl = $('arbSpreadAbs');
+  const isPrima = pctDiff > 0;
+  const sign = pctDiff >= 0 ? '+' : '';
+  const arrow = pctDiff >= 0 ? '▲' : '▼';
+  pctEl.textContent = `${arrow} ${sign}${fmtN(pctDiff, 2)}%`;
+  absEl.textContent = `${sign}USD ${fmtN(absDiff, 2)} por acción`;
+
+  if (Math.abs(pctDiff) < 0.3) {
+    card.className = 'rounded-lg border p-4 transition bg-slate-800 border-slate-600';
+    pctEl.style.color = '#cbd5e1';
+    absEl.style.color = '#94a3b8';
+    lbl.textContent = 'Sin diferencia';
+    lbl.style.color = '#94a3b8';
+  } else if (isPrima) {
+    card.className = 'rounded-lg border p-4 transition';
+    card.style.background = 'rgba(244,63,94,0.10)';
+    card.style.borderColor = '#f43f5e';
+    pctEl.style.color = '#fb7185';
+    absEl.style.color = '#fda4af';
+    lbl.textContent = 'Prima (CEDEAR más caro)';
+    lbl.style.color = '#fb7185';
+  } else {
+    card.className = 'rounded-lg border p-4 transition';
+    card.style.background = 'rgba(16,185,129,0.10)';
+    card.style.borderColor = '#10b981';
+    pctEl.style.color = '#34d399';
+    absEl.style.color = '#6ee7b7';
+    lbl.textContent = 'Descuento (CEDEAR más barato)';
+    lbl.style.color = '#34d399';
+  }
+
+  const tParts = [];
+  if (us.time)  tParts.push(`US: ${us.time}`);
+  if (ced.time) tParts.push(`CEDEAR: ${ced.time}`);
+  if (ccl.time) tParts.push(`CCL: ${new Date(ccl.time).toLocaleString('es-AR')}`);
+  $('arbTime').textContent = tParts.join(' · ');
+
+  // Insight
+  const insight = $('arbInsight');
+  const abs = Math.abs(pctDiff);
+  let txt = '';
+  if (abs < 0.3) {
+    txt = `Arbitraje limpio: el CEDEAR cotiza prácticamente al mismo precio implícito que la acción en NYSE/NASDAQ. Decisión de costos: la elegís por comisiones y fees, no por el spread de cotización.`;
+  } else if (isPrima && abs < 1.5) {
+    txt = `Pequeña prima: el CEDEAR está ${fmtN(abs,2)}% arriba del spot. Comprar el stock afuera (Wallbit) sale más barato en cotización que el CEDEAR local. Sumale comisiones de cada lado para la comparación total.`;
+  } else if (isPrima) {
+    txt = `⚠️ Prima alta (${fmtN(abs,2)}%): el CEDEAR cotiza significativamente arriba del stock. Si vas a entrar ahora, comprarlo afuera (Wallbit) te da el activo más barato de entrada. Vender CEDEARs en este contexto es favorable.`;
+  } else if (abs < 1.5) {
+    txt = `Descuento leve: el CEDEAR está ${fmtN(abs,2)}% abajo del spot. Comprar CEDEAR localmente te da el activo levemente más barato en cotización que Wallbit — pero ojo con comisiones de la ALYC.`;
+  } else {
+    txt = `⚠️ Descuento alto (${fmtN(abs,2)}%): el CEDEAR cotiza significativamente abajo del stock. Comprar CEDEAR ahora es más barato de entrada; vender CEDEAR en este contexto es desfavorable.`;
+  }
+  insight.textContent = txt;
+
+  status.classList.add('hidden');
 }
 
 document.addEventListener('DOMContentLoaded', init);
