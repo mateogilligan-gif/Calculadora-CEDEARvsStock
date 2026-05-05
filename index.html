@@ -142,87 +142,139 @@
   </div>
 </header>
 
-<!-- HERO · SIMULADOR -->
+<!-- HERO · PORTFOLIO BUILDER -->
 <section class="mb-8 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-300">
   <!-- Banner header -->
   <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white px-6 py-4">
-    <h2 class="text-xl sm:text-2xl font-bold">¿Cuál te conviene?</h2>
-    <p class="text-sm opacity-90 mt-0.5">Poné tu monto y cuántas operaciones hacés al año. Te mostramos qué broker/plan te cobra menos.</p>
+    <h2 class="text-xl sm:text-2xl font-bold">Portfolio Builder</h2>
+    <p class="text-sm opacity-90 mt-0.5">Elegí cuánto vas a invertir y en qué tickers. El capital se divide en partes iguales y te mostramos qué broker te cobra menos por construir y mantener tu cartera.</p>
   </div>
 
   <div class="bg-white p-6 sm:p-8">
-    <!-- BIG USD INPUT -->
+    <!-- CAPITAL INPUT -->
     <div class="flex flex-col items-center mb-6">
-      <label for="savUsd" class="block text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">💵 Monto que querés invertir</label>
+      <label for="pbCapital" class="block text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">Capital a invertir</label>
       <div class="relative">
         <span class="absolute left-5 top-1/2 -translate-y-1/2 text-4xl font-bold text-slate-400">$</span>
-        <input id="savUsd" type="number" step="100" value="1500"
+        <input id="pbCapital" type="number" step="100" value="1500"
                class="text-5xl sm:text-6xl font-bold text-slate-900 pl-14 pr-24 py-3 w-80 sm:w-96 border-4 border-indigo-300 focus:border-indigo-600 rounded-2xl text-center bg-indigo-50 focus:bg-white outline-none transition num">
         <span class="absolute right-5 top-1/2 -translate-y-1/2 text-lg font-semibold text-slate-500">USD</span>
       </div>
-      <p class="text-xs text-slate-500 mt-2">Cambiá el número y mirá cómo cambia el ahorro ↓</p>
+      <p class="text-xs text-slate-500 mt-2">Tu capital total. Se reparte equitativamente entre los tickers que agregues ↓</p>
     </div>
 
-    <!-- Secondary inputs -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto text-sm">
+    <!-- TICKER PICKER -->
+    <div class="mb-6">
+      <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-2">Tickers en tu portfolio</label>
+      <div class="relative mb-3">
+        <input id="pbSearch" type="text" placeholder="Buscar ticker (AAPL, TSLA, KO, MSFT…) y hacer click para agregar"
+               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-indigo-500 outline-none" autocomplete="off">
+        <div id="pbDropdown" class="hidden absolute z-30 mt-1 left-0 right-0 bg-white border border-slate-200 rounded-md shadow-lg max-h-80 overflow-y-auto"></div>
+      </div>
+      <div id="pbChips" class="flex flex-wrap gap-2 min-h-[2.2rem] items-center"></div>
+      <p id="pbAllocInfo" class="text-xs text-slate-500 mt-2">Elegí al menos 1 ticker para empezar</p>
+    </div>
+
+    <!-- ROTATIONS + HORIZON + ORIGIN + MODO OPERATORIA -->
+    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto text-sm">
       <div>
-        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Operaciones / año</label>
-        <input id="savTrades" type="number" step="1" value="12" class="w-full px-3 py-2 border border-slate-300 rounded-lg num text-right text-base focus:border-indigo-500 outline-none">
-        <p class="text-[10px] text-slate-400 mt-0.5">compra + venta = 1 operación</p>
+        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Rebalances / año</label>
+        <select id="pbRotations" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
+          <option value="0">Hold puro (0)</option>
+          <option value="1" selected>Anual (1)</option>
+          <option value="4">Trimestral (4)</option>
+          <option value="12">Mensual (12)</option>
+        </select>
+        <p class="text-[10px] text-slate-400 mt-0.5">cada rebalance = vender + recomprar</p>
       </div>
       <div>
         <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Horizonte (meses)</label>
-        <input id="savMeses" type="number" step="1" value="12" class="w-full px-3 py-2 border border-slate-300 rounded-lg num text-right text-base focus:border-indigo-500 outline-none">
-        <p class="text-[10px] text-slate-400 mt-0.5">por cuánto tiempo</p>
+        <input id="pbMeses" type="number" step="1" value="12" class="w-full px-3 py-2 border border-slate-300 rounded-lg num text-right text-base focus:border-indigo-500 outline-none">
+        <p class="text-[10px] text-slate-400 mt-0.5">cuenta custodia + susc</p>
       </div>
       <div>
         <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Origen fondos</label>
-        <select id="savOrigen" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
-          <option value="usd_local">USD cuenta AR (SWIFT al broker)</option>
+        <select id="pbOrigen" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
+          <option value="usd_local">USD cuenta AR (SWIFT)</option>
           <option value="usd_exterior">USD exterior</option>
           <option value="ars_local">ARS cuenta AR (legacy · 4,5%)</option>
         </select>
-        <p class="text-[10px] text-slate-400 mt-0.5">define si pagás fondeo</p>
+        <p class="text-[10px] text-slate-400 mt-0.5">afecta fondeo Wallbit</p>
       </div>
       <div>
-        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Hoy operás con</label>
-        <select id="savPlan" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
-          <option value="balanz">Balanz</option>
-          <option value="allaria">Allaria Autogestión</option>
+        <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Modo operatoria</label>
+        <select id="pbOperatorMode" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:border-indigo-500 outline-none">
+          <option value="home_broker" selected>Home broker (web/app)</option>
+          <option value="operador">Operador (mesa · call-in)</option>
         </select>
-        <p class="text-[10px] text-slate-400 mt-0.5">tu broker actual</p>
+        <p class="text-[10px] text-slate-400 mt-0.5">aplica a ALyCs argentinas</p>
+      </div>
+    </div>
+
+    <!-- DIVIDEND YIELD (fila extra, ancho completo) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto text-sm">
+      <div class="col-span-2 md:col-span-4 rounded-lg border border-amber-300 bg-amber-50/60 p-3 flex flex-wrap items-center gap-3">
+        <div class="flex-1 min-w-[160px]">
+          <label class="block text-[11px] font-semibold text-amber-900 uppercase mb-1">Dividend yield anual (opcional)</label>
+          <div class="flex items-center gap-2">
+            <input id="dividendYield" type="number" step="0.1" min="0" max="15" value="0" class="w-24 px-2 py-1.5 border border-slate-300 rounded num text-right">
+            <span class="text-xs text-slate-600">% sobre capital · 0 = off</span>
+          </div>
+        </div>
+        <p class="text-[11px] text-amber-900 leading-snug flex-1 min-w-[220px]">
+          Si prendés dividendos, se agrega el <b>drag Comafi 8%+IVA escalonado</b> + fee ALyC sobre dividendos (Allaria 2%+IVA · Balanz 2%+IVA · Cocos 0,25%+IVA). Wallbit no paga drag — la retención IRS 30% aplica siempre y se descuenta igual en ambos. Papeles growth (AAPL, TSLA, NVDA, GOOGL, META) ≈ 0%. Dividend stocks (SPY ≈ 1,3%, JNJ ≈ 3%, KO ≈ 3%, XOM ≈ 3,5%, T ≈ 6%).
+        </p>
       </div>
     </div>
 
     <!-- BIG SAVINGS HEADLINE -->
-    <div id="savHeadline" class="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-indigo-50 border-2 border-emerald-300 p-6 sm:p-8 mb-5 text-center shadow-sm">
-      <!-- populated by JS -->
+    <div id="pbHeadline" class="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-indigo-50 border-2 border-emerald-300 p-6 sm:p-8 mb-5 text-center shadow-sm">
+      <p class="text-slate-400 text-sm">Elegí capital y tickers para ver el resultado</p>
     </div>
 
-    <!-- Desglose collapsable -->
-    <details class="group">
-      <summary class="cursor-pointer text-sm font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-2">
+    <!-- Desglose por broker -->
+    <details class="group" open>
+      <summary class="cursor-pointer text-sm font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-2 mb-2">
         <span class="group-open:rotate-90 transition-transform">▶</span>
-        Ver desglose completo por estrategia
+        Comparación completa por broker
       </summary>
-      <div class="mt-4 overflow-x-auto">
+      <div class="mt-2 overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="text-xs text-slate-500 uppercase border-b-2 border-slate-200">
             <tr>
-              <th class="text-left py-2 pr-3">Estrategia</th>
-              <th class="text-right py-2 px-3">Costo operativo</th>
+              <th class="text-left py-2 pr-3">Broker · plan</th>
+              <th class="text-right py-2 px-3">Comisiones</th>
               <th class="text-right py-2 px-3">Susc. + fondeo</th>
               <th class="text-right py-2 px-3">Custodia</th>
-              <th class="text-right py-2 px-3">Costo total</th>
-              <th class="text-right py-2 pl-3">Ahorro vs. base</th>
+              <th class="text-right py-2 px-3" title="Fees Comafi + ALyC sobre dividendos (por encima de la retención IRS 30% que aplica siempre)">Div. drag</th>
+              <th class="text-right py-2 px-3">Total</th>
+              <th class="text-right py-2 pl-3">Ahorro vs. peor</th>
             </tr>
           </thead>
-          <tbody id="savTableBody"></tbody>
+          <tbody id="pbTableBody"></tbody>
         </table>
         <p class="mt-3 text-[11px] text-slate-500 leading-relaxed">
-          <b>Cómo leerlo:</b> "Costo operativo" = comisiones de compra + venta. "Susc. + fondeo" = abono mensual del plan Wallbit + fee de fondeo one-time vía SWIFT bancario (USD 24,20 OUR fijo + 0,21% post-IVA sobre monto, desde USD 1.000). "Custodia" = el abono mensual de Allaria. El ahorro se calcula contra el broker que seleccionaste arriba.
+          <b>Modelo:</b> con K tickers y R rebalances al año hacés <b>K × (1 + 2R)</b> trades totales. Cada trade = comisión % sobre (capital / K). Wallbit Max aplica cap de USD 10 por trade. El fondeo one-time (4,5% ARS o SWIFT) se paga sobre el capital total, una sola vez.
         </p>
       </div>
+    </details>
+
+    <!-- Desglose por ticker -->
+    <details class="group mt-4">
+      <summary class="cursor-pointer text-sm font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-2 mb-2">
+        <span class="group-open:rotate-90 transition-transform">▶</span>
+        Desglose por ticker (comisiones)
+      </summary>
+      <div id="pbTickerBreakdown" class="mt-2 overflow-x-auto"></div>
+    </details>
+
+    <!-- Escenarios de rotación -->
+    <details class="group mt-4">
+      <summary class="cursor-pointer text-sm font-semibold text-indigo-700 hover:text-indigo-900 flex items-center gap-2 mb-2">
+        <span class="group-open:rotate-90 transition-transform">▶</span>
+        ¿Y si rebalancearas con otra frecuencia?
+      </summary>
+      <div id="pbRotationScenarios" class="mt-2 overflow-x-auto"></div>
     </details>
   </div>
 </section>
@@ -305,7 +357,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
         <div><label class="block text-xs text-slate-500 mb-1">Balanz comisión %</label><input id="balanzCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">Allaria comisión %</label><input id="allariaCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-        <div><label class="block text-xs text-slate-500 mb-1">Allaria custodia $/mes</label><input id="allariaCustodiaARS" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">Allaria custodia ARS/mes</label><input id="allariaCustodiaARS" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">Wallbit comisión %</label><input id="wallbitCommission" type="number" step="0.01" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">Fondeo Wallbit %</label><input id="fondeoWallbit" type="number" step="0.1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
         <div><label class="block text-xs text-slate-500 mb-1">IVA %</label><input id="iva" type="number" step="0.1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
@@ -353,6 +405,60 @@
         </div>
       </div>
 
+      <!-- Cocos Plans -->
+      <div class="mt-5 pt-4 border-t border-slate-100">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Planes Cocos Capital <span class="text-[10px] font-normal text-slate-400 normal-case">(CEDEARs · personas humanas)</span></h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-xs text-slate-500 uppercase">
+              <tr class="border-b border-slate-200">
+                <th class="text-left py-2 pr-2">Plan</th>
+                <th class="text-right py-2 px-2">Comisión %</th>
+                <th class="text-right py-2 px-2">Suscripción /mes</th>
+                <th class="text-right py-2 pl-2">Notas</th>
+              </tr>
+            </thead>
+            <tbody class="num">
+              <tr class="border-b border-slate-100">
+                <td class="py-2 pr-2 font-medium">Humanas (web/app)</td>
+                <td class="text-right py-2 px-2"><input id="cocosCommissionHumanas" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2 text-slate-400">$0</td>
+                <td class="text-right py-2 pl-2 text-[11px] text-slate-400">+ IVA 21%</td>
+              </tr>
+              <tr class="border-b border-slate-100">
+                <td class="py-2 pr-2 font-medium">Gold</td>
+                <td class="text-right py-2 px-2 text-emerald-500 font-semibold">0%</td>
+                <td class="text-right py-2 px-2"><input id="cocosGoldAUM" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right" title="% anual sobre AUM"></td>
+                <td class="text-right py-2 pl-2 text-[11px] text-slate-400">% anual sobre AUM</td>
+              </tr>
+              <tr class="border-b border-slate-100">
+                <td class="py-2 pr-2 font-medium">Pro</td>
+                <td class="text-right py-2 px-2 text-emerald-500 font-semibold">0%</td>
+                <td class="text-right py-2 px-2"><input id="cocosProMonthly" type="number" step="1" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 pl-2 text-[11px] text-slate-400">USD fijo / mes</td>
+              </tr>
+              <tr>
+                <td class="py-2 pr-2 font-medium">Operador (mesa)</td>
+                <td class="text-right py-2 px-2"><input id="cocosCommissionOperador" type="number" step="0.01" class="w-20 px-2 py-1 border border-slate-300 rounded num text-right"></td>
+                <td class="text-right py-2 px-2 text-slate-400">$0</td>
+                <td class="text-right py-2 pl-2 text-[11px] text-slate-400">call-in, + IVA</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Threshold custodia USD <span class="text-[10px] text-slate-400">(gratis debajo)</span></label>
+            <input id="cocosCustodyThreshold" type="number" step="1000" class="w-full px-2 py-1.5 border border-slate-300 rounded num">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mb-1">Custodia ARS/mes <span class="text-[10px] text-slate-400">(entre threshold y +100k USD)</span></label>
+            <input id="cocosCustodyARS" type="number" step="100" class="w-full px-2 py-1.5 border border-slate-300 rounded num">
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-2">Gold: 0% trading + hasta 0,15% AUM anual (break-even vs Humanas: turnover ≥ 28% cartera/año). Pro: 0% trading + USD 150/mes fijo (break-even vs Gold: saldo ≥ USD 1,2M). Custodia gratis hasta USD 200k de saldo. Operador aplica a call-in por mesa.</p>
+      </div>
+
       <!-- SWIFT bancario (fondeo USD AR → broker) -->
       <div class="mt-5 pt-4 border-t border-slate-100">
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Fondeo SWIFT bancario <span class="text-[10px] font-normal text-slate-400 normal-case">(USD cuenta AR → broker)</span></h3>
@@ -382,151 +488,7 @@
   </details>
 </section>
 
-<!-- SCENARIOS -->
-<section class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">3A · Escenario A</h2>
-    <div class="grid grid-cols-2 gap-3 text-sm">
-      <div><label class="block text-xs text-slate-500 mb-1">Notional por trade (USD)</label><input id="A_notionalUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-      <div><label class="block text-xs text-slate-500 mb-1">Round-trips (año)</label><input id="A_numRT" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-      <div><label class="block text-xs text-slate-500 mb-1">Horizonte (meses)</label><input id="A_meses" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-      <div><label class="block text-xs text-slate-500 mb-1">Origen fondos</label>
-        <select id="A_origenFondos" class="w-full px-2 py-1.5 border border-slate-300 rounded">
-          <option value="usd_local">USD desde cuenta AR (SWIFT al broker)</option>
-          <option value="usd_exterior">USD desde exterior</option>
-          <option value="ars_local">ARS desde cuenta AR (legacy · 4,5%)</option>
-        </select>
-      </div>
-      <div class="col-span-2"><label class="block text-xs text-slate-500 mb-1">Capital ocioso promedio en cuenta remunerada (USD) · <span class="text-slate-400">beneficio APR Wallbit</span></label><input id="A_idleUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num" placeholder="0 = sin beneficio APR"></div>
-    </div>
-    <div id="A_results" class="mt-4"></div>
-  </div>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">3B · Escenario B</h2>
-    <div class="grid grid-cols-2 gap-3 text-sm">
-      <div><label class="block text-xs text-slate-500 mb-1">Notional por trade (USD)</label><input id="B_notionalUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-      <div><label class="block text-xs text-slate-500 mb-1">Round-trips (año)</label><input id="B_numRT" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-      <div><label class="block text-xs text-slate-500 mb-1">Horizonte (meses)</label><input id="B_meses" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num"></div>
-      <div><label class="block text-xs text-slate-500 mb-1">Origen fondos</label>
-        <select id="B_origenFondos" class="w-full px-2 py-1.5 border border-slate-300 rounded">
-          <option value="usd_local">USD desde cuenta AR (SWIFT al broker)</option>
-          <option value="usd_exterior">USD desde exterior</option>
-          <option value="ars_local">ARS desde cuenta AR (legacy · 4,5%)</option>
-        </select>
-      </div>
-      <div class="col-span-2"><label class="block text-xs text-slate-500 mb-1">Capital ocioso promedio en cuenta remunerada (USD) · <span class="text-slate-400">beneficio APR Wallbit</span></label><input id="B_idleUSD" type="number" step="1" class="w-full px-2 py-1.5 border border-slate-300 rounded num" placeholder="0 = sin beneficio APR"></div>
-    </div>
-    <div id="B_results" class="mt-4"></div>
-  </div>
-</section>
-
-<!-- CHART + RECO -->
-<section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-  <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">4 · Costo total vs N round-trips</h2>
-    <div style="height:320px;"><canvas id="costChart"></canvas></div>
-    <p class="text-[11px] text-slate-400 mt-2">Notional y origen tomados del Escenario A. Break-even marcado donde Balanz (swing) cruza a Wallbit.</p>
-  </div>
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-    <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">5 · Recomendación</h2>
-    <div id="reco" class="text-sm"></div>
-    <div class="mt-4 pt-4 border-t border-slate-100">
-      <p class="text-xs text-slate-500 mb-2">Break-even (round-trips/año) Balanz swing vs Wallbit:</p>
-      <p id="breakeven" class="text-lg font-bold text-indigo-700 num">--</p>
-    </div>
-  </div>
-</section>
-
-<!-- POSTULADO WALLBIT: alta frecuencia -->
-<section class="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl border border-indigo-200 p-5 mb-5">
-  <h2 class="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3">6 · Postulado: cuándo Wallbit le gana a Balanz</h2>
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
-    <div>
-      <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Lógica</p>
-      <p class="text-slate-700 text-[13px] leading-relaxed">
-        El costo de fondeo de Wallbit es <b>one-time</b>: con SWIFT desde tu cuenta USD AR pagás sólo <b>USD 24,20 + 0,21% del monto</b> (ej.: USD 1.500 → $27,38; USD 10.000 → $45). Lo pagás una vez al transferir y después rotás ese capital sin costo adicional de fondeo. Balanz, en cambio, cobra comisión full en cada trade.
-        Con Wallbit <b>Max</b>, además, la comisión tiene un cap de $10/trade — así que en notional alto el costo por RT es casi fijo.
-      </p>
-    </div>
-    <div>
-      <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Break-even por plan (Escenario A)</p>
-      <div id="breakevenPorPlan" class="space-y-1 text-[13px] num"></div>
-    </div>
-    <div>
-      <p class="text-xs font-semibold text-indigo-700 uppercase mb-1">Veredicto</p>
-      <div id="postuladoVeredicto" class="text-[13px] text-slate-700 leading-relaxed"></div>
-    </div>
-  </div>
-</section>
-
-<!-- DASHBOARD: breakpoints por N trades -->
-<section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-5">
-  <div class="flex items-start justify-between flex-wrap gap-3 mb-4">
-    <div>
-      <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">7 · Dashboard · ¿Dónde conviene a medida que operás más?</h2>
-      <p class="text-xs text-slate-500 mt-1">Notional fijo, horizonte 12 meses, origen ARS. El <span class="font-semibold text-emerald-700">mejor</span> por columna está resaltado.</p>
-    </div>
-    <div class="flex items-center gap-3 text-sm flex-wrap">
-      <label class="text-xs text-slate-500">Notional USD</label>
-      <input id="dashNotional" type="number" step="50" value="1500" class="w-28 px-2 py-1.5 border border-slate-300 rounded num text-right">
-      <label class="text-xs text-slate-500">Meses</label>
-      <input id="dashMeses" type="number" step="1" value="12" class="w-16 px-2 py-1.5 border border-slate-300 rounded num text-right">
-      <label class="text-xs text-slate-500">Origen</label>
-      <select id="dashOrigen" class="px-2 py-1.5 border border-slate-300 rounded text-xs">
-        <option value="usd_local">USD cuenta AR (SWIFT al broker)</option>
-        <option value="usd_exterior">USD exterior</option>
-        <option value="ars_local">ARS cuenta AR (legacy · 4,5%)</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm num">
-      <thead class="text-xs text-slate-500 uppercase border-b-2 border-slate-200">
-        <tr>
-          <th class="text-left py-2 pr-3">Estrategia</th>
-          <th class="text-right py-2 px-2">1 RT</th>
-          <th class="text-right py-2 px-2">5 RT</th>
-          <th class="text-right py-2 px-2">10 RT</th>
-          <th class="text-right py-2 px-2">25 RT</th>
-          <th class="text-right py-2 px-2">50 RT</th>
-          <th class="text-right py-2 px-2">100 RT</th>
-          <th class="text-right py-2 pl-2">250 RT</th>
-        </tr>
-      </thead>
-      <tbody id="dashTableBody"></tbody>
-      <tfoot class="border-t-2 border-slate-200">
-        <tr class="text-xs">
-          <td class="text-left py-2 pr-3 text-slate-500 uppercase font-semibold">Ganador</td>
-          <td id="dashWin_1"  class="text-right py-2 px-2"></td>
-          <td id="dashWin_5"  class="text-right py-2 px-2"></td>
-          <td id="dashWin_10" class="text-right py-2 px-2"></td>
-          <td id="dashWin_25" class="text-right py-2 px-2"></td>
-          <td id="dashWin_50" class="text-right py-2 px-2"></td>
-          <td id="dashWin_100" class="text-right py-2 px-2"></td>
-          <td id="dashWin_250" class="text-right py-2 pl-2"></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-
-  <!-- Winner zones + insight -->
-  <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="bg-slate-50 rounded-lg p-4">
-      <p class="text-xs font-semibold text-slate-600 uppercase mb-2">Zonas de dominio</p>
-      <div id="dashZones" class="text-[13px] space-y-1"></div>
-    </div>
-    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-      <p class="text-xs font-semibold text-indigo-700 uppercase mb-2">Insight</p>
-      <div id="dashInsight" class="text-[13px] text-slate-700 leading-relaxed"></div>
-    </div>
-  </div>
-
-  <!-- Chart dedicado -->
-  <div class="mt-5">
-    <div style="height:300px;"><canvas id="dashChart"></canvas></div>
-  </div>
-</section>
+<!-- (secciones de Escenarios, Chart, Postulado y Dashboard removidas — reemplazadas por el Portfolio Builder en el HERO) -->
 
 <!-- ARB: CEDEAR vs STOCK EN USD (LIVE) -->
 <section class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-sm border border-indigo-500 p-5 mb-5">
@@ -882,6 +844,7 @@ const DEFAULTS = {
     ccl: 1467, cedearPriceARS: 38380, cedearRatio: 15, cedearTicker: 'TSLA',
     wallbitPriceUSD: 391.71, usPrice: 391.71,
     balanzCommission: 0.50, allariaCommission: 0.50,
+    balanzCommissionOperador: 1.50, allariaCommissionOperador: 1.50,
     // Wallbit 3 planes
     wallbitCommission: 0.40,    // Classic
     wallbitCommissionPro: 0.35, // Pro
@@ -893,20 +856,37 @@ const DEFAULTS = {
     wallbitAPRClassic: 3.00,
     wallbitAPRPro: 3.35,
     wallbitAPRMax: 3.75,
+    // Cocos Capital — personas humanas CEDEARs web/app + planes especiales
+    cocosCommissionHumanas: 0.45,    // web/app personas humanas (CEDEARs)
+    cocosCommissionOperador: 1.00,   // mesa/operador (call-in)
+    cocosGoldAUM: 0.15,              // % anual sobre AUM (plan Gold)
+    cocosProMonthly: 150,            // USD/mes fijo (plan Pro)
+    cocosCustodyThreshold: 200000,   // saldo USD hasta el cual custodia = 0
+    cocosCustodyARS: 1000,           // ARS/mes si saldo entre threshold y +100k
     iva: 21, fondeoWallbit: 4.5, bymaDerechos: 0.01,
     allariaCustodiaARS: 35,
     // SWIFT bancario (transferencia USD cuenta AR → broker, desde Apr-2026)
     swiftOurLow: 12.10,      // OUR fijo para monto < USD 500
     swiftOurHigh: 24.20,     // OUR fijo para monto >= USD 500
     swiftBankPct: 0.175,     // % comisión banco pre-IVA sobre monto
-    swiftBankThreshold: 1000 // debajo de este umbral, % comisión banco = 0
-  },
-  A: { notionalUSD: 391.71, numRT: 5, meses: 12, origenFondos: 'usd_local', idleUSD: 0 },
-  B: { notionalUSD: 391.71, numRT: 20, meses: 12, origenFondos: 'usd_local', idleUSD: 0 }
+    swiftBankThreshold: 1000, // debajo de este umbral, % comisión banco = 0
+    // Dividend drag (#52 + #55) — Banco Comafi custodio CEDEARs + fees ALyC sobre dividendos
+    dividendYield: 0,        // % anual sobre capital (default 0 = off; user lo prende si aplica)
+    irsWithhold: 30,         // % retención IRS sobre dividendo bruto USA (W-8BEN igual; 30% default)
+    comafiDivTier1: 8,       // % Comafi sobre div neto anual < USD 20k
+    comafiDivTier2: 7,       // % Comafi entre USD 20k-80k
+    comafiDivTier3: 6,       // % Comafi ≥ USD 80k
+    comafiTier1Max: 20000,
+    comafiTier2Max: 80000,
+    divFeeAllaria: 2.00,     // % ALyC Allaria sobre dividendos (incluye CV)
+    divFeeBalanz: 2.00,      // % ALyC Balanz sobre dividendos (estimado)
+    divFeeCocos:  0.25,      // % ALyC Cocos sobre dividendos
+  }
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULTS));
-let chart = null;
+// Portfolio Builder — lista de tickers (equitativa)
+let portfolioTickers = [];
 let cedearsCache = null;  // ARS live prices cache
 let usStocksCache = null; // US live prices cache
 
@@ -1155,133 +1135,357 @@ function computeWallbit(market, scen, plan) {
   };
 }
 
-function computeAll(scen) {
-  return [
-    computeBalanz(state.market, scen),
-    computeAllaria(state.market, scen),
-    computeWallbit(state.market, scen, 'classic'),
-    computeWallbit(state.market, scen, 'pro'),
-    computeWallbit(state.market, scen, 'max'),
-  ].sort((a,b) => a.totalCost - b.totalCost);
+// ============================================================
+// PORTFOLIO BUILDER — compute
+// ============================================================
+// Modelo:
+//   K = cantidad de tickers (distribución equitativa).
+//   perTicketNotional = capital / K.
+//   trades totales = K × (1 + 2R), con R = rebalances/año.
+//   comisión por trade = min(perTicketNotional × commPct%, cap/trade).
+//   fondeo = SWIFT o 4,5% gross-up, aplicado UNA sola vez sobre el capital total (solo Wallbit).
+//   custodia = solo Allaria ($ARS/mes × IVA × meses / CCL).
+//   suscripción = fee mensual Wallbit × meses.
+const PORTFOLIO_STRATEGIES = [
+  { id: 'balanz',       label: 'Balanz',                color: '#7c3aed' },
+  { id: 'allaria',      label: 'Allaria · Autogestión', color: '#0ea5e9' },
+  { id: 'cocosHumanas', label: 'Cocos · Humanas',       color: '#f59e0b' },
+  { id: 'cocosGold',    label: 'Cocos · Gold',          color: '#eab308' },
+  { id: 'cocosPro',     label: 'Cocos · Pro',           color: '#ca8a04' },
+  { id: 'wbClassic',    label: 'Wallbit · Classic',     color: '#3b82f6' },
+  { id: 'wbPro',        label: 'Wallbit · Pro',         color: '#1d4ed8' },
+  { id: 'wbMax',        label: 'Wallbit · Max',         color: '#1e3a8a' },
+];
+
+function readPortfolioConfig() {
+  return {
+    capital:      parseFloat($('pbCapital').value)  || 0,
+    tickers:      portfolioTickers.slice(),
+    rotations:    parseInt($('pbRotations').value)  || 0,
+    meses:        parseFloat($('pbMeses').value)    || 12,
+    origen:       $('pbOrigen').value               || 'usd_local',
+    operatorMode: ($('pbOperatorMode') && $('pbOperatorMode').value) || 'home_broker',
+  };
+}
+
+// Dividend drag — fees INCREMENTALES que el CEDEAR suma por encima de lo que
+// igualmente se pierde por retención IRS 30% (la cual aplica tanto a CEDEAR
+// como a Wallbit). El drag Comafi + ALyC es el costo puro de usar CEDEAR.
+function computeDividendDrag(m, capital, meses, alycDivFeePct) {
+  const y = (m.dividendYield || 0) / 100;
+  if (y <= 0 || capital <= 0) return 0;
+  const grossAnnual = capital * y;
+  const afterIrs    = grossAnnual * (1 - (m.irsWithhold || 30) / 100);
+  // Tier Comafi por nivel de dividendo neto recibido (post-IRS)
+  let comafiPct;
+  if (afterIrs < (m.comafiTier1Max || 20000))      comafiPct = (m.comafiDivTier1 || 8);
+  else if (afterIrs < (m.comafiTier2Max || 80000)) comafiPct = (m.comafiDivTier2 || 7);
+  else                                              comafiPct = (m.comafiDivTier3 || 6);
+  const ivaMult = 1 + (m.iva || 21) / 100;
+  const comafiFee = afterIrs * (comafiPct / 100) * ivaMult;
+  const alycFee   = afterIrs * ((alycDivFeePct || 0) / 100) * ivaMult;
+  const annualDrag = comafiFee + alycFee;
+  return annualDrag * (meses / 12);
+}
+
+function computePortfolioCost(cfg, strategyId) {
+  const m = state.market;
+  const K = Math.max(cfg.tickers.length, 1);
+  const perTicket = cfg.capital / K;
+  const tradesPerTicker = 1 + 2 * cfg.rotations;
+  const numTrades = K * tradesPerTicker;
+
+  let commPct = 0, feeMonthly = 0, capPerTrade = Infinity;
+  let custodia = 0, fondeo = 0, divDrag = 0;
+
+  const isOp = cfg.operatorMode === 'operador';
+
+  if (strategyId === 'balanz') {
+    const rate = isOp ? m.balanzCommissionOperador : m.balanzCommission;
+    commPct = rate * (1 + m.iva/100) + m.bymaDerechos;
+    divDrag = computeDividendDrag(m, cfg.capital, cfg.meses, m.divFeeBalanz);
+  } else if (strategyId === 'allaria') {
+    const rate = isOp ? m.allariaCommissionOperador : m.allariaCommission;
+    commPct = rate * (1 + m.iva/100) + m.bymaDerechos;
+    custodia = m.allariaCustodiaARS * (1 + m.iva/100) * cfg.meses / m.ccl;
+    divDrag = computeDividendDrag(m, cfg.capital, cfg.meses, m.divFeeAllaria);
+  } else if (strategyId === 'cocosHumanas') {
+    // Cocos web/app personas humanas CEDEARs: 0,45% + IVA + BYMA (home broker)
+    // Por operador (mesa/call-in): 1,00% + IVA + BYMA
+    const rate = isOp ? m.cocosCommissionOperador : m.cocosCommissionHumanas;
+    commPct = rate * (1 + m.iva/100) + m.bymaDerechos;
+    // Custodia: $0 hasta threshold, ARS/mes si saldo entre threshold y +100k
+    if (cfg.capital > m.cocosCustodyThreshold) {
+      custodia = m.cocosCustodyARS * (1 + m.iva/100) * cfg.meses / m.ccl;
+    }
+    divDrag = computeDividendDrag(m, cfg.capital, cfg.meses, m.divFeeCocos);
+  } else if (strategyId === 'cocosGold') {
+    // 0% trading + hasta cocosGoldAUM% anual sobre AUM, prorrateado a meses
+    commPct = 0 + m.bymaDerechos; // BYMA sigue aplicando, lo paga el cliente
+    const aumFeeAnnualUSD = cfg.capital * (m.cocosGoldAUM/100);
+    feeMonthly = aumFeeAnnualUSD / 12;
+    if (cfg.capital > m.cocosCustodyThreshold) {
+      custodia = m.cocosCustodyARS * (1 + m.iva/100) * cfg.meses / m.ccl;
+    }
+    divDrag = computeDividendDrag(m, cfg.capital, cfg.meses, m.divFeeCocos);
+  } else if (strategyId === 'cocosPro') {
+    // 0% trading + USD fijo por mes
+    commPct = 0 + m.bymaDerechos;
+    feeMonthly = m.cocosProMonthly;
+    if (cfg.capital > m.cocosCustodyThreshold) {
+      custodia = m.cocosCustodyARS * (1 + m.iva/100) * cfg.meses / m.ccl;
+    }
+    divDrag = computeDividendDrag(m, cfg.capital, cfg.meses, m.divFeeCocos);
+  } else if (strategyId.startsWith('wb')) {
+    const plan = strategyId === 'wbClassic' ? 'classic' : strategyId === 'wbPro' ? 'pro' : 'max';
+    commPct = plan === 'pro' ? m.wallbitCommissionPro
+            : plan === 'max' ? m.wallbitCommissionMax
+            : m.wallbitCommission;
+    feeMonthly = plan === 'pro' ? m.wallbitFeePro
+               : plan === 'max' ? m.wallbitFeeMax
+               : m.wallbitFeeClassic;
+    capPerTrade = plan === 'max' ? (m.wallbitCapMax || Infinity) : Infinity;
+    // Fondeo one-time sobre capital total (solo Wallbit)
+    if (cfg.origen === 'ars_local') {
+      fondeo = cfg.capital * m.fondeoWallbit / (100 - m.fondeoWallbit);
+    } else if (cfg.origen === 'usd_local') {
+      fondeo = computeSwiftCost(cfg.capital, m);
+    }
+  }
+
+  const commPerTrade = Math.min(perTicket * (commPct/100), capPerTrade);
+  const commissions  = numTrades * commPerTrade;
+  const subscription = feeMonthly * cfg.meses;
+  const total        = commissions + subscription + fondeo + custodia + divDrag;
+
+  return {
+    id: strategyId,
+    commissions,
+    subscription,
+    fondeo,
+    subscriptionFondeo: subscription + fondeo,
+    custodia,
+    divDrag,
+    total,
+    numTrades,
+    tradesPerTicker,
+    perTicket,
+    commPerTrade,
+  };
 }
 
 // ============================================================
-// RENDER
+// PORTFOLIO BUILDER — render
 // ============================================================
-function renderResults(scenKey) {
-  const scen = state[scenKey];
-  const rows = computeAll(scen);
-  const best = rows[0];
-  const worst = rows[rows.length-1];
-  const saving = worst.totalCost - best.totalCost;
-  const savingPct = saving / (scen.numRT * scen.notionalUSD) * 100;
+function renderPbChips() {
+  const chips = $('pbChips');
+  if (!chips) return;
+  if (portfolioTickers.length === 0) {
+    chips.innerHTML = `<span class="text-xs text-slate-400 italic">Ningún ticker agregado. Buscá arriba ↑</span>`;
+    return;
+  }
+  chips.innerHTML = portfolioTickers.map((t, i) => `
+    <span class="inline-flex items-center gap-1 pl-3 pr-1 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm font-semibold border border-indigo-300">
+      ${t}
+      <button class="pb-chip-remove w-6 h-6 flex items-center justify-center rounded-full hover:bg-indigo-200 text-indigo-900 font-bold" data-idx="${i}" title="Quitar">×</button>
+    </span>
+  `).join('');
+  chips.querySelectorAll('.pb-chip-remove').forEach(b => {
+    b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.idx);
+      portfolioTickers.splice(idx, 1);
+      renderPortfolio();
+    });
+  });
+}
 
-  let html = `
-    <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead class="text-xs text-slate-500 uppercase border-b border-slate-200">
-        <tr>
-          <th class="text-left py-2 pr-2">Broker</th>
-          <th class="text-right py-2 px-2">Cost/RT %</th>
-          <th class="text-right py-2 px-2">Trading USD</th>
-          <th class="text-right py-2 px-2">Otros USD</th>
-          <th class="text-right py-2 pl-2">Total USD</th>
-        </tr>
-      </thead><tbody>`;
-  rows.forEach((r,i) => {
-    const highlight = i===0 ? 'bg-emerald-50 font-semibold' : i===rows.length-1 ? 'text-slate-400' : '';
-    const tag = i===0 ? '<span class="badge bg-emerald-100 text-emerald-700">MEJOR</span>' :
-                i===rows.length-1 ? '<span class="badge bg-rose-100 text-rose-700">PEOR</span>' : '';
-    html += `<tr class="${highlight} border-b border-slate-100">
-      <td class="py-2 pr-2">${r.label} ${tag}</td>
-      <td class="text-right py-2 px-2 num">${r.perRTPct.toFixed(3)}%</td>
-      <td class="text-right py-2 px-2 num">${fmtUSD(r.tradingCost)}</td>
-      <td class="text-right py-2 px-2 num">${r.otherCost>0.01?fmtUSD(r.otherCost):'--'}${r.otherLabel?` <span class="text-[10px] text-slate-400">${r.otherLabel}</span>`:''}</td>
-      <td class="text-right py-2 pl-2 num font-semibold">${fmtUSD(r.totalCost)}</td>
+function renderPbDropdown(q) {
+  const dd = $('pbDropdown');
+  if (!dd) return;
+  const qq = (q || '').trim().toUpperCase();
+  let list = (typeof CEDEARS !== 'undefined' ? CEDEARS : []).slice();
+  if (qq) {
+    list = list.filter(c =>
+      c.ticker.toUpperCase().startsWith(qq) ||
+      c.name.toUpperCase().includes(qq)
+    );
+  }
+  list = list.filter(c => !portfolioTickers.includes(c.ticker)).slice(0, 40);
+  if (!list.length) {
+    dd.innerHTML = `<div class="p-3 text-sm text-slate-400">Sin resultados${qq ? '' : ' (o ya agregados)'}</div>`;
+  } else {
+    dd.innerHTML = list.map(c => `
+      <div class="pb-opt px-3 py-2 hover:bg-indigo-50 cursor-pointer border-b border-slate-100 flex items-center justify-between" data-ticker="${c.ticker}">
+        <div>
+          <span class="font-semibold text-slate-900">${c.ticker}</span>
+          <span class="text-xs text-slate-500 ml-2">${c.name}</span>
+        </div>
+        <span class="text-[10px] text-slate-400 font-mono">${c.ratio}</span>
+      </div>
+    `).join('');
+    dd.querySelectorAll('.pb-opt').forEach(el => {
+      el.addEventListener('click', () => {
+        portfolioTickers.push(el.dataset.ticker);
+        $('pbSearch').value = '';
+        dd.classList.add('hidden');
+        renderPortfolio();
+      });
+    });
+  }
+  dd.classList.remove('hidden');
+}
+
+function renderPortfolio() {
+  renderPbChips();
+  const cfg = readPortfolioConfig();
+  const K = cfg.tickers.length;
+
+  // Alloc info
+  const allocInfo = $('pbAllocInfo');
+  if (allocInfo) {
+    if (K === 0) {
+      allocInfo.textContent = 'Elegí al menos 1 ticker para empezar';
+    } else {
+      const per = cfg.capital / K;
+      const totTrades = K * (1 + 2 * cfg.rotations);
+      const rebTrades = 2 * K * cfg.rotations;
+      const extra = cfg.rotations > 0
+        ? ` + ${cfg.rotations} rebalance${cfg.rotations>1?'s':''} × ${2*K} trades = ${rebTrades} trades extra`
+        : '';
+      allocInfo.innerHTML = `<b>${K}</b> ticker${K>1?'s':''} · <b class="num">$${per.toFixed(2)} USD</b> por ticker · <b>${totTrades}</b> trades totales (${K} compra${K>1?'s':''} inicial${K>1?'es':''}${extra})`;
+    }
+  }
+
+  if (K === 0 || cfg.capital <= 0) {
+    $('pbHeadline').innerHTML = `<p class="text-slate-400 text-sm">Elegí capital y al menos un ticker para ver el resultado</p>`;
+    $('pbTableBody').innerHTML = '';
+    $('pbTickerBreakdown').innerHTML = '';
+    $('pbRotationScenarios').innerHTML = '';
+    return;
+  }
+
+  // Compute all strategies
+  const rows = PORTFOLIO_STRATEGIES.map(st => ({ ...st, ...computePortfolioCost(cfg, st.id) }));
+  rows.sort((a, b) => a.total - b.total);
+  const best  = rows[0];
+  const worst = rows[rows.length - 1];
+  const saving = worst.total - best.total;
+  const savingPct = cfg.capital > 0 ? (saving / cfg.capital) * 100 : 0;
+
+  // Headline
+  const originTxt = cfg.origen === 'ars_local'   ? 'ARS cuenta AR (legacy 4,5%)'
+                  : cfg.origen === 'usd_local'   ? 'USD cuenta AR (SWIFT)'
+                  :                                 'USD exterior (0 fondeo)';
+  const tickersStr = cfg.tickers.length <= 4
+    ? cfg.tickers.join(' · ')
+    : `${cfg.tickers.slice(0, 3).join(' · ')} +${cfg.tickers.length - 3}`;
+  $('pbHeadline').innerHTML = `
+    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Capital $${cfg.capital.toLocaleString('en-US')} · ${K} tickers (${tickersStr}) · ${cfg.rotations} rebalances/año · ${cfg.meses} meses · ${originTxt}</div>
+    <div class="text-5xl sm:text-6xl font-extrabold text-emerald-600 mb-1 num">
+      $${best.total.toFixed(2)}
+      <span class="text-2xl sm:text-3xl text-slate-500 font-bold align-middle ml-2">USD</span>
+    </div>
+    <div class="text-sm sm:text-base text-slate-600 mb-3">costo total mínimo · <b>${((best.total / cfg.capital) * 100).toFixed(2)}%</b> del capital</div>
+    <div class="text-lg sm:text-xl font-semibold text-slate-800">Mejor opción: <span style="color:${best.color}">${best.label}</span></div>
+    <div class="text-xs text-slate-500 mt-3">Te ahorra <b class="text-emerald-700 num">$${saving.toFixed(2)}</b> vs la peor (<b>${worst.label}</b>) · ${savingPct.toFixed(2)}% del capital</div>
+  `;
+
+  // Tabla por broker
+  let body = '';
+  rows.forEach((r, i) => {
+    const isBest  = i === 0;
+    const isWorst = i === rows.length - 1;
+    const rowCls  = isBest ? 'bg-emerald-50 font-semibold' : isWorst ? 'text-slate-400' : '';
+    const tag = isBest  ? '<span class="badge bg-emerald-100 text-emerald-700 ml-1">MEJOR</span>'
+             : isWorst ? '<span class="badge bg-rose-100 text-rose-700 ml-1">PEOR</span>' : '';
+    const delta = worst.total - r.total;
+    body += `<tr class="${rowCls} border-b border-slate-100">
+      <td class="text-left py-2 pr-3 font-medium" style="color:${r.color}">${r.label}${tag}</td>
+      <td class="text-right py-2 px-3 num">$${r.commissions.toFixed(2)}</td>
+      <td class="text-right py-2 px-3 num">${r.subscriptionFondeo > 0.01 ? '$'+r.subscriptionFondeo.toFixed(2) : '—'}</td>
+      <td class="text-right py-2 px-3 num">${r.custodia > 0.01 ? '$'+r.custodia.toFixed(2) : '—'}</td>
+      <td class="text-right py-2 px-3 num">${(r.divDrag||0) > 0.01 ? '$'+r.divDrag.toFixed(2) : '—'}</td>
+      <td class="text-right py-2 px-3 num font-semibold">$${r.total.toFixed(2)}</td>
+      <td class="text-right py-2 pl-3 num">${delta > 0.01 ? '<span class="text-emerald-700 font-bold">−$'+delta.toFixed(2)+'</span>' : '<span class="text-slate-400">—</span>'}</td>
     </tr>`;
   });
-  html += `</tbody></table></div>
-    <div class="mt-3 flex items-center justify-between text-xs bg-slate-50 rounded-lg p-3">
-      <span class="text-slate-600">Ahorro vs peor: <b class="num text-emerald-700">${fmtUSD(saving)}</b> (${savingPct.toFixed(2)}% del total invertido)</span>
-      <span class="text-slate-500">Mejor: <b>${best.label}</b></span>
-    </div>`;
-  $(scenKey+'_results').innerHTML = html;
+  $('pbTableBody').innerHTML = body;
+
+  // Desglose por ticker (solo comisiones, todos iguales en equitativa)
+  renderTickerBreakdown(cfg, rows);
+
+  // Escenarios de rotación
+  renderRotationScenarios(cfg);
 }
 
-function renderChart() {
-  const notional = state.A.notionalUSD;
-  const origen = state.A.origenFondos;
-  const idle = state.A.idleUSD || 0;
-  const N_MAX = 30;
-  const xs = Array.from({length: N_MAX+1}, (_,i)=>i);
-  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
-  const balanz      = xs.map(n => computeBalanz(state.market, mkScen(n)).totalCost);
-  const allaria     = xs.map(n => computeAllaria(state.market, mkScen(n)).totalCost);
-  const wbClassic   = xs.map(n => computeWallbit(state.market, mkScen(n), 'classic').totalCost);
-  const wbPro       = xs.map(n => computeWallbit(state.market, mkScen(n), 'pro').totalCost);
-  const wbMax       = xs.map(n => computeWallbit(state.market, mkScen(n), 'max').totalCost);
+function renderTickerBreakdown(cfg, rows) {
+  const K = cfg.tickers.length;
+  const el = $('pbTickerBreakdown');
+  if (!el || K === 0) { if (el) el.innerHTML = ''; return; }
+  const per = cfg.capital / K;
+  const tradesPerTicker = 1 + 2 * cfg.rotations;
 
-  if (chart) chart.destroy();
-  const ctx = $('costChart').getContext('2d');
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: xs,
-      datasets: [
-        { label: 'Balanz', data: balanz, borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
-        { label: 'Allaria autogestión', data: allaria, borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
-        { label: 'Wallbit Classic', data: wbClassic, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
-        { label: 'Wallbit Pro', data: wbPro, borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
-        { label: 'Wallbit Max', data: wbMax, borderColor:'#1e3a8a', backgroundColor:'rgba(30,58,138,.1)', tension:.1, pointRadius:0, borderWidth:2.5 },
-      ]
-    },
-    options: {
-      maintainAspectRatio:false, responsive:true,
-      plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:12 } } },
-      scales: {
-        x: { title:{display:true,text:'Round-trips', font:{size:11}} },
-        y: { title:{display:true,text:'Costo total (USD)', font:{size:11}}, beginAtZero:true }
-      }
-    }
+  let html = `<table class="w-full text-xs">
+    <thead class="text-slate-500 uppercase border-b border-slate-200">
+      <tr>
+        <th class="text-left py-2 pr-3">Ticker</th>
+        <th class="text-right py-2 px-3">Notional</th>
+        <th class="text-right py-2 px-3">Trades</th>`;
+  PORTFOLIO_STRATEGIES.forEach(st => {
+    const short = st.label.replace('Wallbit · ', 'WB ').replace('Cocos · ', 'Cocos ').replace('Humanas', 'Hum.').replace(' · Autogestión', '');
+    html += `<th class="text-right py-2 px-3" style="color:${st.color}">${short}</th>`;
   });
+  html += `</tr></thead><tbody class="num">`;
+
+  cfg.tickers.forEach(t => {
+    html += `<tr class="border-b border-slate-100">
+      <td class="text-left py-2 pr-3 font-semibold text-slate-800">${t}</td>
+      <td class="text-right py-2 px-3">$${per.toFixed(2)}</td>
+      <td class="text-right py-2 px-3">${tradesPerTicker}</td>`;
+    PORTFOLIO_STRATEGIES.forEach(st => {
+      const r = rows.find(x => x.id === st.id);
+      const costOneTicker = r ? r.commPerTrade * tradesPerTicker : 0;
+      html += `<td class="text-right py-2 px-3">$${costOneTicker.toFixed(2)}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table><p class="text-[10px] text-slate-500 mt-2">Solo comisiones por ticker. Susc, fondeo y custodia son costos a nivel de portfolio — no se prorratean.</p>`;
+  el.innerHTML = html;
 }
 
-function computeBreakeven() {
-  const notional = state.A.notionalUSD;
-  const origen = state.A.origenFondos;
-  const idle = state.A.idleUSD || 0;
-  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
-  // Break-even: Balanz vs el MEJOR plan Wallbit (el más barato para cada N)
-  let be = null;
-  for (let n=1; n<=500; n++) {
-    const b = computeBalanz(state.market, mkScen(n)).totalCost;
-    const w = Math.min(
-      computeWallbit(state.market, mkScen(n), 'classic').totalCost,
-      computeWallbit(state.market, mkScen(n), 'pro').totalCost,
-      computeWallbit(state.market, mkScen(n), 'max').totalCost,
-    );
-    if (b >= w) { be = n; break; }
-  }
-  $('breakeven').textContent = be===null ? 'Wallbit siempre más caro' : `${be} RT/año`;
-}
+function renderRotationScenarios(cfg) {
+  const el = $('pbRotationScenarios');
+  if (!el) return;
+  const scenarios = [0, 1, 4, 12];
+  const labels    = { 0: 'Hold (0)', 1: 'Anual (1)', 4: 'Trimestral (4)', 12: 'Mensual (12)' };
 
-function renderReco() {
-  const A = computeAll(state.A)[0];
-  const B = computeAll(state.B)[0];
-  const html = `
-    <div class="space-y-3">
-      <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-        <p class="text-xs text-emerald-700 font-semibold uppercase mb-1">Escenario A · ${state.A.numRT} RT</p>
-        <p class="text-sm font-bold text-emerald-900">${A.label}</p>
-        <p class="text-xs text-emerald-700 num">${fmtUSD(A.totalCost)} total</p>
-      </div>
-      <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-        <p class="text-xs text-indigo-700 font-semibold uppercase mb-1">Escenario B · ${state.B.numRT} RT</p>
-        <p class="text-sm font-bold text-indigo-900">${B.label}</p>
-        <p class="text-xs text-indigo-700 num">${fmtUSD(B.totalCost)} total</p>
-      </div>
-    </div>`;
-  $('reco').innerHTML = html;
+  let html = `<table class="w-full text-xs">
+    <thead class="text-slate-500 uppercase border-b border-slate-200">
+      <tr>
+        <th class="text-left py-2 pr-3">Rebalances/año</th>`;
+  PORTFOLIO_STRATEGIES.forEach(st => {
+    const short = st.label.replace('Wallbit · ', 'WB ').replace('Cocos · ', 'Cocos ').replace('Humanas', 'Hum.').replace(' · Autogestión', '');
+    html += `<th class="text-right py-2 px-3" style="color:${st.color}">${short}</th>`;
+  });
+  html += `<th class="text-right py-2 pl-3">Ganador</th></tr></thead><tbody class="num">`;
+
+  scenarios.forEach(r => {
+    const scen = { ...cfg, rotations: r };
+    const results = PORTFOLIO_STRATEGIES.map(st => ({ ...st, ...computePortfolioCost(scen, st.id) }));
+    const winner = results.reduce((a, b) => a.total < b.total ? a : b);
+    const isCurrent = r === cfg.rotations;
+    html += `<tr class="border-b border-slate-100 ${isCurrent ? 'bg-indigo-50' : ''}">
+      <td class="text-left py-2 pr-3 font-semibold ${isCurrent ? 'text-indigo-900' : 'text-slate-700'}">${labels[r]}${isCurrent ? ' ←' : ''}</td>`;
+    results.forEach(res => {
+      const isWin = res.id === winner.id;
+      html += `<td class="text-right py-2 px-3 ${isWin ? 'bg-emerald-100 text-emerald-900 font-bold rounded' : ''}">$${res.total.toFixed(2)}</td>`;
+    });
+    const winnerShort = winner.label.replace('Wallbit · ', 'WB ').replace('Cocos · ', 'Cocos ').replace('Humanas', 'Hum.').replace(' · Autogestión', '');
+    html += `<td class="text-right py-2 pl-3 font-bold" style="color:${winner.color}">${winnerShort}</td>`;
+    html += `</tr>`;
+  });
+  html += `</tbody></table><p class="text-[10px] text-slate-500 mt-2">Tu config actual está marcada con ←. Cada fila recalcula para el mismo capital y tickers pero cambiando la frecuencia de rebalance.</p>`;
+  el.innerHTML = html;
 }
 
 function renderImplied() {
@@ -1304,303 +1508,9 @@ function renderImplied() {
   }
 }
 
-function renderPostulado() {
-  const notional = state.A.notionalUSD;
-  const origen = state.A.origenFondos;
-  const idle = state.A.idleUSD || 0;
-  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses: state.A.meses, origenFondos: origen, idleUSD: idle });
-
-  // Break-even por plan: Balanz swing vs cada Wallbit plan
-  const plans = ['classic','pro','max'];
-  const planNames = { classic:'Classic', pro:'Pro', max:'Max' };
-  const planColors = { classic:'text-rose-700', pro:'text-pink-700', max:'text-violet-700' };
-  const results = {};
-  plans.forEach(p => {
-    let beSwing = null;
-    for (let n=1; n<=500; n++) {
-      const b = computeBalanz(state.market, mkScen(n)).totalCost;
-      const w = computeWallbit(state.market, mkScen(n), p).totalCost;
-      if (w <= b) { beSwing = n; break; }
-    }
-    results[p] = { beSwing };
-  });
-
-  // Render break-even list
-  let html = '';
-  plans.forEach(p => {
-    const r = results[p];
-    html += `<div class="flex items-center justify-between">
-      <span class="font-semibold ${planColors[p]}">Wallbit ${planNames[p]}</span>
-      <span class="text-slate-500">vs Balanz: <b class="text-slate-900">${r.beSwing===null?'nunca':r.beSwing+' RT'}</b></span>
-    </div>`;
-  });
-  $('breakevenPorPlan').innerHTML = html;
-
-  // Veredicto
-  const mejorPlan = plans.reduce((a,b) => (results[a].beSwing||999) < (results[b].beSwing||999) ? a : b);
-  const mejorBE = results[mejorPlan].beSwing;
-  const actualN = state.A.numRT;
-  let veredicto = '';
-  if (mejorBE === null) {
-    veredicto = `<b class="text-rose-700">Balanz gana siempre</b> en esta configuración. Con notional $${notional.toFixed(0)} y horizonte ${state.A.meses}mo, ningún plan de Wallbit supera a Balanz swing. Se necesita notional mayor o más RT.`;
-  } else if (actualN >= mejorBE) {
-    const ahorro = computeBalanz(state.market, mkScen(actualN), 'swing').totalCost - computeWallbit(state.market, mkScen(actualN), mejorPlan).totalCost;
-    veredicto = `<b class="text-emerald-700">Tu config (${actualN} RT) ya justifica Wallbit ${planNames[mejorPlan]}</b>. Break-even en <b>${mejorBE} RT</b>. Ahorro vs Balanz swing: <b class="num">$${ahorro.toFixed(2)}</b>.`;
-  } else {
-    veredicto = `Tu config (${actualN} RT) está <b>por debajo del break-even</b>. Para que <b>Wallbit ${planNames[mejorPlan]}</b> le gane a Balanz swing, necesitás al menos <b>${mejorBE} RT/año</b> con notional $${notional.toFixed(0)}. Probá subir el notional o la frecuencia.`;
-  }
-  $('postuladoVeredicto').innerHTML = veredicto;
-}
-
-// ============================================================
-// DASHBOARD (breakpoints por N round-trips)
-// ============================================================
-let dashChart = null;
-function renderDashboard() {
-  const notional = parseFloat($('dashNotional').value) || 1500;
-  const meses    = parseFloat($('dashMeses').value) || 12;
-  const origen   = $('dashOrigen').value || 'usd_local';
-  const idle     = 0;
-  const Ns = [1, 5, 10, 25, 50, 100, 250];
-  const mkScen = (n) => ({ notionalUSD: notional, numRT: n, meses, origenFondos: origen, idleUSD: idle });
-
-  const strategies = [
-    { id:'balanz',      label:'Balanz',               color:'#7c3aed', fn:(s)=>computeBalanz(state.market, s),             eligible:true },
-    { id:'allaria',     label:'Allaria · Autogestión', color:'#0ea5e9', fn:(s)=>computeAllaria(state.market, s),            eligible:true },
-    { id:'wbClassic',   label:'Wallbit · Classic',    color:'#3b82f6', fn:(s)=>computeWallbit(state.market, s, 'classic'), eligible:true },
-    { id:'wbPro',       label:'Wallbit · Pro',        color:'#1d4ed8', fn:(s)=>computeWallbit(state.market, s, 'pro'),     eligible:true },
-    { id:'wbMax',       label:'Wallbit · Max',        color:'#1e3a8a', fn:(s)=>computeWallbit(state.market, s, 'max'),     eligible:true },
-  ];
-
-  // Costos: strategies × Ns
-  const grid = strategies.map(st => ({
-    ...st,
-    costs: Ns.map(n => st.fn(mkScen(n)).totalCost)
-  }));
-  // Winner index por columna — sólo entre elegibles
-  const winners = Ns.map((_, ci) => {
-    let minIdx = -1;
-    for (let i=0; i<grid.length; i++) {
-      if (!grid[i].eligible) continue;
-      if (minIdx === -1 || grid[i].costs[ci] < grid[minIdx].costs[ci]) minIdx = i;
-    }
-    return minIdx;
-  });
-
-  // Render tbody
-  let body = '';
-  grid.forEach((row, ri) => {
-    const disabled = !row.eligible;
-    body += `<tr class="border-b border-slate-100 ${disabled?'opacity-40':''}">
-      <td class="text-left py-2 pr-3 font-medium" style="color:${row.color}">${row.label}${disabled?' <span class="text-[10px] text-slate-400">(desactivado)</span>':''}</td>`;
-    row.costs.forEach((c, ci) => {
-      const isWin = winners[ci] === ri;
-      const cls = isWin ? 'bg-emerald-100 text-emerald-900 font-bold rounded' : 'text-slate-700';
-      body += `<td class="text-right py-2 ${ci===row.costs.length-1?'pl-2':'px-2'}"><span class="${cls} inline-block px-2 py-0.5">$${c.toFixed(2)}</span></td>`;
-    });
-    body += '</tr>';
-  });
-  $('dashTableBody').innerHTML = body;
-
-  // Winner footer row
-  Ns.forEach((n, ci) => {
-    const w = grid[winners[ci]];
-    const el = $('dashWin_'+n);
-    el.innerHTML = `<span class="badge bg-emerald-100 text-emerald-700 text-[10px]">${w.label.split(' · ')[0]}<br>${w.label.split(' · ')[1]||''}</span>`;
-  });
-
-  // Zones: find break-even ranges — sólo sobre elegibles
-  const eligStrats = strategies.filter(s => s.eligible);
-  const zones = [];
-  let currentWinner = -1, zoneStart = 1;
-  for (let n=1; n<=500; n++) {
-    const costs = eligStrats.map(st => st.fn(mkScen(n)).totalCost);
-    const minIdx = costs.indexOf(Math.min(...costs));
-    if (minIdx !== currentWinner) {
-      if (currentWinner !== -1) {
-        zones.push({ winner: eligStrats[currentWinner], from: zoneStart, to: n-1 });
-      }
-      currentWinner = minIdx;
-      zoneStart = n;
-    }
-  }
-  zones.push({ winner: eligStrats[currentWinner], from: zoneStart, to: 500 });
-
-  let zonesHtml = '';
-  zones.forEach(z => {
-    const range = z.to >= 500 ? `${z.from}+ RT` : `${z.from}–${z.to} RT`;
-    zonesHtml += `<div class="flex items-center gap-2">
-      <span class="inline-block w-3 h-3 rounded" style="background:${z.winner.color}"></span>
-      <span class="font-mono text-slate-600">${range}</span>
-      <span class="text-slate-800">→ <b>${z.winner.label}</b></span>
-    </div>`;
-  });
-  $('dashZones').innerHTML = zonesHtml;
-
-  // Insight
-  const bestAtN = (n) => {
-    const costs = eligStrats.map(st => st.fn(mkScen(n)).totalCost);
-    const minIdx = costs.indexOf(Math.min(...costs));
-    return { name: eligStrats[minIdx].label, cost: costs[minIdx] };
-  };
-  const at10 = bestAtN(10), at100 = bestAtN(100);
-  const insightHtml = `
-    <p class="mb-2">Con <b class="text-indigo-900">$${notional.toFixed(0)}</b>, origen <b>${origen==='ars_local'?'ARS cuenta AR':origen==='usd_local'?'USD AR vía SWIFT':'USD exterior'}</b>:</p>
-    <ul class="space-y-1 list-disc list-inside">
-      <li><b>Hasta ~10 RT/año:</b> gana <b>${at10.name}</b> ($${at10.cost.toFixed(2)})</li>
-      <li><b>A 100 RT/año:</b> gana <b>${at100.name}</b> ($${at100.cost.toFixed(2)})</li>
-      <li>Primer cambio de ganador: <b>${zones.length > 1 ? `RT ${zones[1].from}` : 'nunca cambia'}</b></li>
-    </ul>
-    <p class="text-[11px] text-slate-500 mt-2">Escenario para usuario minorista común: buy &amp; hold o trading de baja frecuencia.</p>`;
-  $('dashInsight').innerHTML = insightHtml;
-
-  // Chart dedicado (0..250 RT smooth curve)
-  const xs = [];
-  for (let i=0; i<=100; i++) xs.push(Math.round(i*2.5));  // 0, 2, 5, ..., 250
-  const datasets = strategies.map(st => ({
-    label: st.label,
-    data: xs.map(n => st.fn(mkScen(n)).totalCost),
-    borderColor: st.color,
-    backgroundColor: st.color + '22',
-    tension: .1, pointRadius: 0, borderWidth: 2
-  }));
-  if (dashChart) dashChart.destroy();
-  dashChart = new Chart($('dashChart').getContext('2d'), {
-    type: 'line',
-    data: { labels: xs, datasets },
-    options: {
-      maintainAspectRatio:false, responsive:true,
-      plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:10 } }, tooltip: { mode:'index', intersect:false } },
-      interaction: { mode:'index', intersect:false },
-      scales: {
-        x: { title:{display:true,text:'Round-trips / año',font:{size:11}} },
-        y: { title:{display:true,text:'Costo total (USD)',font:{size:11}}, beginAtZero:true }
-      }
-    }
-  });
-}
-
 function renderAll() {
   renderImplied();
-  renderResults('A');
-  renderResults('B');
-  renderChart();
-  computeBreakeven();
-  renderReco();
-  renderPostulado();
-  renderDashboard();
-  renderSavings();
-}
-
-// ============================================================
-// SIMULADOR DE AHORRO (monto × trades → ahorro, agnóstico del ticker)
-// ============================================================
-function renderSavings() {
-  const usd    = parseFloat($('savUsd').value)    || 0;
-  const trades = parseFloat($('savTrades').value) || 0;
-  const meses  = parseFloat($('savMeses').value)  || 12;
-  const origen = $('savOrigen').value || 'usd_local';
-  const basePlan = $('savPlan').value || 'balanz';
-
-  const scen = { notionalUSD: usd, numRT: trades, meses, origenFondos: origen, idleUSD: 0 };
-
-  // Breakdown helper
-  const breakdowns = {
-    balanz:  { label:'Balanz',                color:'#7c3aed', r: computeBalanz(state.market, scen, 'swing'),   extra: { susc:0, custodia:0, fondeo:0, apr:0 } },
-    allaria: { label:'Allaria · Autogestión', color:'#0ea5e9', r: computeAllaria(state.market, scen),           extra: null /* filled below */ },
-    wbClassic: { label:'Wallbit · Classic',   color:'#3b82f6', r: computeWallbit(state.market, scen, 'classic'), extra: null },
-    wbPro:     { label:'Wallbit · Pro',       color:'#1d4ed8', r: computeWallbit(state.market, scen, 'pro'),     extra: null },
-    wbMax:     { label:'Wallbit · Max',       color:'#1e3a8a', r: computeWallbit(state.market, scen, 'max'),     extra: null },
-  };
-
-  // Compute extra breakdowns for transparency
-  const custodiaARS = state.market.allariaCustodiaARS * (1 + state.market.iva/100) * meses;
-  const custodiaUSD = custodiaARS / state.market.ccl;
-  breakdowns.allaria.extra = { susc:0, custodia:custodiaUSD, fondeo:0, apr:0 };
-
-  let fondeoFee = 0;
-  if (origen === 'ars_local') {
-    fondeoFee = usd * state.market.fondeoWallbit / (100 - state.market.fondeoWallbit);
-  } else if (origen === 'usd_local') {
-    fondeoFee = computeSwiftCost(usd, state.market);
-  }
-  // No idle in this simulator (idle es 0) → APR benefit = 0
-  ['wbClassic','wbPro','wbMax'].forEach(k => {
-    const plan = k === 'wbClassic' ? 'classic' : k === 'wbPro' ? 'pro' : 'max';
-    const fee = plan==='classic' ? state.market.wallbitFeeClassic
-              : plan==='pro'     ? state.market.wallbitFeePro
-              : state.market.wallbitFeeMax;
-    breakdowns[k].extra = { susc: fee*meses, custodia:0, fondeo:fondeoFee, apr:0 };
-  });
-
-  // Base (estrategia actual del usuario)
-  const baseKey = basePlan === 'balanz' ? 'balanz' : 'allaria';
-  const baseCost = breakdowns[baseKey].r.totalCost;
-  const baseLabel = breakdowns[baseKey].label;
-
-  // Find best Wallbit plan
-  const wbPlans = ['wbClassic','wbPro','wbMax'];
-  let bestWb = null;
-  wbPlans.forEach(k => {
-    const c = breakdowns[k].r.totalCost;
-    if (!bestWb || c < bestWb.cost) bestWb = { key:k, cost:c, label:breakdowns[k].label };
-  });
-  const savings = baseCost - bestWb.cost;
-  const savingsPct = baseCost > 0 ? (savings/baseCost*100) : 0;
-  const savingsFlavor = savings > 0
-    ? `<span class="text-emerald-700">te ahorrás</span>`
-    : `<span class="text-rose-700">pagás de más</span>`;
-
-  // Headline card (HERO)
-  const originTxt = origen==='ars_local'?'ARS cuenta AR' : origen==='usd_local'?'USD AR vía SWIFT' : 'USD exterior';
-  const winsColor = savings > 0 ? 'text-emerald-600' : 'text-rose-600';
-  const headlineMsg = savings > 0
-    ? `Te ahorrás con <span style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</span>`
-    : `Pagás de más con <span style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</span>`;
-  const headline = `
-    <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">Moviendo $${usd.toLocaleString('en-US')} × ${trades} operaciones/año · ${meses} meses · ${originTxt}</div>
-    <div class="text-5xl sm:text-6xl font-extrabold ${winsColor} mb-1">
-      ${savings > 0 ? '+' : '−'}$${Math.abs(savings).toFixed(2)}
-      <span class="text-2xl sm:text-3xl text-slate-500 font-bold align-middle ml-2">USD</span>
-    </div>
-    <div class="text-sm sm:text-base text-slate-600 mb-3">
-      ${Math.abs(savingsPct).toFixed(1)}% ${savings > 0 ? 'menos' : 'más'} de costo total
-    </div>
-    <div class="text-lg sm:text-xl font-semibold text-slate-800">
-      ${headlineMsg}
-    </div>
-    <div class="text-xs text-slate-500 mt-3 flex items-center justify-center gap-3 flex-wrap">
-      <span>Base <b style="color:${breakdowns[baseKey].color}">${baseLabel}</b>: $${baseCost.toFixed(2)}</span>
-      <span class="text-slate-300">→</span>
-      <span><b style="color:${breakdowns[bestWb.key].color}">${bestWb.label}</b>: $${bestWb.cost.toFixed(2)}</span>
-    </div>`;
-  $('savHeadline').innerHTML = headline;
-
-  // Tabla
-  const order = [baseKey, ...wbPlans.filter(k => k !== baseKey), ...(baseKey==='balanz'?['allaria']:['balanz'])];
-  let body = '';
-  order.forEach(k => {
-    const b = breakdowns[k];
-    const ex = b.extra;
-    const trading = b.r.tradingCost || 0;
-    const suscFondeo = ex.susc + ex.fondeo;
-    const aprCust = ex.custodia; // APR is 0 in this simulator
-    const total = b.r.totalCost;
-    const delta = baseCost - total;
-    const deltaTxt = delta > 0.01 ? `<span class="text-emerald-700 font-bold">−$${delta.toFixed(2)}</span>`
-                    : delta < -0.01 ? `<span class="text-rose-700">+$${Math.abs(delta).toFixed(2)}</span>`
-                    : `<span class="text-slate-400">—</span>`;
-    const isBase = (k === baseKey);
-    body += `<tr class="border-b border-slate-100 ${isBase?'bg-slate-50':''}">
-      <td class="text-left py-2 pr-3 font-medium" style="color:${b.color}">${b.label}${isBase?' <span class="text-[10px] text-slate-500 ml-1 font-normal">(base)</span>':''}</td>
-      <td class="text-right py-2 px-3 num">$${trading.toFixed(2)}</td>
-      <td class="text-right py-2 px-3 num">${suscFondeo > 0.01 ? '$'+suscFondeo.toFixed(2) : '—'}</td>
-      <td class="text-right py-2 px-3 num">${aprCust > 0.01 ? '$'+aprCust.toFixed(2) : '—'}</td>
-      <td class="text-right py-2 px-3 num font-semibold">$${total.toFixed(2)}</td>
-      <td class="text-right py-2 pl-3 num">${deltaTxt}</td>
-    </tr>`;
-  });
-  $('savTableBody').innerHTML = body;
+  renderPortfolio();
 }
 
 // ============================================================
@@ -1609,32 +1519,55 @@ function renderSavings() {
 function bindMarketInputs() {
   const keys = ['ccl','cedearPriceARS','wallbitPriceUSD','usPrice',
     'balanzCommission','allariaCommission',
+    'balanzCommissionOperador','allariaCommissionOperador',
     'wallbitCommission','wallbitCommissionPro','wallbitCommissionMax',
     'wallbitFeeClassic','wallbitFeePro','wallbitFeeMax','wallbitCapMax',
     'wallbitAPRClassic','wallbitAPRPro','wallbitAPRMax',
+    'cocosCommissionHumanas','cocosCommissionOperador',
+    'cocosGoldAUM','cocosProMonthly','cocosCustodyThreshold','cocosCustodyARS',
     'iva','fondeoWallbit','bymaDerechos','allariaCustodiaARS',
-    'swiftOurLow','swiftOurHigh','swiftBankPct','swiftBankThreshold'];
+    'swiftOurLow','swiftOurHigh','swiftBankPct','swiftBankThreshold',
+    'dividendYield','irsWithhold',
+    'comafiDivTier1','comafiDivTier2','comafiDivTier3',
+    'comafiTier1Max','comafiTier2Max',
+    'divFeeAllaria','divFeeBalanz','divFeeCocos'];
   keys.forEach(k => {
-    const el = $(k);
-    if (!el) return;
-    el.value = state.market[k];
-    el.addEventListener('input', () => {
-      state.market[k] = parseFloat(el.value) || 0;
-      renderAll();
+    // Puede haber más de un input con el mismo id (el form tiene dos inputs
+    // para wallbitCommission: el del grid y el de la tabla de planes).
+    const els = document.querySelectorAll('#' + k);
+    if (!els.length) return;
+    els.forEach(el => {
+      el.value = state.market[k];
+      el.addEventListener('input', () => {
+        state.market[k] = parseFloat(el.value) || 0;
+        // Mantener sincronizados los duplicados
+        els.forEach(other => { if (other !== el) other.value = el.value; });
+        renderAll();
+      });
     });
   });
 }
 
-function bindScenInputs(scenKey) {
-  const ids = { notionalUSD:'_notionalUSD', numRT:'_numRT', meses:'_meses', origenFondos:'_origenFondos', idleUSD:'_idleUSD' };
-  Object.entries(ids).forEach(([k, suffix]) => {
-    const el = $(scenKey+suffix);
-    if (!el) return;
-    el.value = state[scenKey][k];
-    el.addEventListener('input', () => {
-      state[scenKey][k] = el.type==='number' ? (parseFloat(el.value) || 0) : el.value;
-      renderAll();
+function bindPortfolio() {
+  const search = $('pbSearch');
+  if (search) {
+    search.addEventListener('focus', () => renderPbDropdown(search.value));
+    search.addEventListener('input', () => renderPbDropdown(search.value));
+    search.addEventListener('keydown', e => {
+      if (e.key === 'Escape') $('pbDropdown').classList.add('hidden');
     });
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#pbSearch') && !e.target.closest('#pbDropdown')) {
+      const dd = $('pbDropdown');
+      if (dd) dd.classList.add('hidden');
+    }
+  });
+  ['pbCapital','pbRotations','pbMeses','pbOrigen','pbOperatorMode'].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener('input',  renderPortfolio);
+    el.addEventListener('change', renderPortfolio);
   });
 }
 
@@ -1776,14 +1709,17 @@ async function refreshAll() {
 // ============================================================
 function init() {
   bindMarketInputs();
-  bindScenInputs('A');
-  bindScenInputs('B');
+  bindPortfolio();
 
-  // Initial CEDEAR = TSLA
+  // Portfolio seed: AAPL + TSLA + MSFT (típico minorista)
+  const seed = ['AAPL', 'TSLA', 'MSFT'].filter(t => CEDEARS.some(c => c.ticker === t));
+  portfolioTickers = seed.length ? seed : [CEDEARS[0].ticker];
+
+  // Initial CEDEAR = TSLA (para la sección de Datos de mercado / arb)
   const initial = CEDEARS.find(c => c.ticker === 'TSLA') || CEDEARS[0];
   selectCedear({ ticker: initial.ticker, name: initial.name, market: initial.market, ratio: initial.ratio });
 
-  // Dropdown behaviors
+  // Dropdown behaviors (CEDEAR selector del Data Center)
   const search = $('cedearSearch');
   search.addEventListener('focus', () => renderCedearDropdown(search.value));
   search.addEventListener('input', () => renderCedearDropdown(search.value));
@@ -1793,18 +1729,6 @@ function init() {
     }
   });
 
-  // Dashboard inputs
-  ['dashNotional','dashMeses','dashOrigen'].forEach(id => {
-    const el = $(id);
-    if (el) el.addEventListener('input', renderDashboard);
-  });
-
-  // Savings simulator inputs
-  ['savUsd','savTrades','savMeses','savOrigen','savPlan'].forEach(id => {
-    const el = $(id);
-    if (el) el.addEventListener('input', renderSavings);
-  });
-
   // Buttons
   $('btnRefresh').addEventListener('click', refreshAll);
   $('btnFetchCedear').addEventListener('click', refreshCedearPrice);
@@ -1812,9 +1736,15 @@ function init() {
   $('btnReset').addEventListener('click', () => {
     if (confirm('¿Resetear todos los valores?')) {
       state = JSON.parse(JSON.stringify(DEFAULTS));
-      bindMarketInputs(); bindScenInputs('A'); bindScenInputs('B');
-      const t = CEDEARS.find(c=>c.ticker==='TSLA');
-      selectCedear({ ticker:t.ticker, name:t.name, market:t.market, ratio:t.ratio });
+      portfolioTickers = seed.slice();
+      $('pbCapital').value      = 1500;
+      $('pbRotations').value    = 1;
+      $('pbMeses').value        = 12;
+      $('pbOrigen').value       = 'usd_local';
+      if ($('pbOperatorMode')) $('pbOperatorMode').value = 'home_broker';
+      bindMarketInputs();
+      const t = CEDEARS.find(c => c.ticker === 'TSLA');
+      selectCedear({ ticker: t.ticker, name: t.name, market: t.market, ratio: t.ratio });
     }
   });
 
